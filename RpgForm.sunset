@@ -1,0 +1,103 @@
+import(Windows/Form)
+import(Windows/SimpleLabel)
+import(Windows/KeyEventArgs)
+import(Windows/RECT)
+
+import(C:\Users\GDSPIOSJDGOSDHGJSDhg\Documents\GitHub\Simple-RPG\Player)
+
+private Form form
+private Player player
+private constant int Y becomes 310
+private constant int Y0 becomes 100
+
+constructor {
+	form becomes new(Form,"RPG",100,100,600,400)
+	form.show
+	player becomes new(Player) ; Temp, player should be initialized in RpgForm#promptClass
+}
+
+public func promptClass {
+	
+	; -- Prompt --
+	SimpleLabel lbl becomes new(SimpleLabel)
+	lbl.text becomes "Select your class"
+	form.addComponent(lbl)
+	; ------------
+	
+	; -- Rect 1 --
+	RECT r becomes new(RECT)
+	r.left becomes 1
+	r.right becomes 100
+	r.bottom becomes 399
+	r.top becomes 300
+	form.rectangles.add(r)
+	; ------------
+	
+	; -- Rect 2 --
+	RECT r0 becomes new(RECT)
+	r0.left becomes 100
+	r0.right becomes 200
+	r0.bottom becomes 399
+	r0.top becomes 300
+	form.rectangles.add(r0)
+	; ------------
+
+	; -- Rect 3 --
+	RECT r1 becomes new(RECT)
+	r1.left becomes 200
+	r1.right becomes 300
+	r1.bottom becomes 399
+	r1.top becomes 300
+	form.rectangles.add(r1)
+	; ------------
+
+	; -- Rect 4 --
+	RECT r2 becomes new(RECT)
+	r2.left becomes 300
+	r2.right becomes 400
+	r2.bottom becomes 399
+	r2.top becomes 300
+	form.rectangles.add(r2)
+	; ------------
+	
+	; Options
+	SimpleLabel lbl0 becomes new(SimpleLabel)
+	lbl0.text becomes "Mage"
+	lbl0.y becomes Y
+	lbl0.x becomes 2
+	SimpleLabel lbl1 becomes new(SimpleLabel)
+	lbl1.text becomes "Rogue"
+	lbl1.y becomes Y
+	lbl1.x becomes 102
+	SimpleLabel lbl2 becomes new(SimpleLabel)
+	lbl2.text becomes "Bard"
+	lbl2.y becomes Y
+	lbl2.x becomes 202
+	SimpleLabel lbl3 becomes new(SimpleLabel)
+	lbl3.text becomes "Warrior"
+	lbl3.y becomes Y
+	lbl3.x becomes 302
+	form.addComponent(lbl0)
+	form.addComponent(lbl1)
+	form.addComponent(lbl2)
+	form.addComponent(lbl3)
+	; -------
+	
+	; Definitions
+	SimpleLabel lbl4 becomes new(SimpleLabel)
+	lbl4.text becomes "You will have the opportunity to purchase spells"
+	lbl4.y becomes Y0
+	SimpleLabel lbl5 becomes new(SimpleLabel)
+	lbl5.text becomes "You will have increased speed and critical strike damage"
+	lbl5.y becomes Y0
+	SimpleLabel lbl6 becomes new(SimpleLabel)
+	lbl6.text becomes "The shop will be 50% cheaper"
+	lbl6.y becomes Y0
+	SimpleLabel lbl7 becomes new(SimpleLabel)
+	lbl7.text becomes "You will have increased damage and health"
+	lbl7.y becomes Y0
+	; -----------
+	
+}
+
+

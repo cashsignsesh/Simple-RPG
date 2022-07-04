@@ -1,0 +1,4 @@
+import(C:\Users\GDSPIOSJDGOSDHGJSDhg\Documents\GitHub\Simple-RPG\Classes)
+import(Windows\MessageBox)
+
+MessageBox.mboxNumber(Classes.Rogue)

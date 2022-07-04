@@ -1,0 +1,12 @@
+
+
+int dog becomes 0
+
+bool hog becomes true
+
+while (hog) {
+	
+	if (dog,=/=,3) { ++dog }
+	else { hog becomes false }
+	
+}
