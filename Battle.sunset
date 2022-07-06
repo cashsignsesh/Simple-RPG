@@ -1,0 +1,150 @@
+import(C:\Users\GDSPIOSJDGOSDHGJSDhg\Documents\GitHub\Simple-RPG\Enemy)
+import(C:\Users\GDSPIOSJDGOSDHGJSDhg\Documents\GitHub\Simple-RPG\Player)
+import(ImageReference)
+import(Windows/Form)
+import(Windows/Line)
+import(Windows/SimpleLabel)
+import(Windows/RECT)
+import(Tuple<RECT,Enemy>)
+import(List<Tuple<RECT,Enemy>>)
+import(Windows/CollisionEventArgs)
+import(Tuple<SimpleLabel,Enemy>)
+import(List<Tuple<SimpleLabel,Enemy>>)
+import(Windows/RECTF)
+dllref(User32,str,str,int,int) cdecl:wsprintfA int
+public Enemy# enemies ; allow up to 3 ? or ignore rest after 3
+public Player player
+private Form form
+private SimpleLabel healthLbl becomes new(SimpleLabel)
+private List<Tuple<RECT,Enemy>> enemyBtns becomes new(List<Tuple<RECT,Enemy>>)
+private List<Tuple<SimpleLabel,Enemy>> enemyLbls becomes new(List<Tuple<SimpleLabel,Enemy>>)
+private bool onCd becomes false
+private int lastIndex
+
+public func show {
+	
+	ImageReference ref becomes new(ImageReference)
+	ref.y becomes 200
+	ref.height becomes 64
+	ref.width becomes 92
+	ref.fileName becomes player.sprite
+	form.images.add(ref)
+	Line border becomes new(Line)
+	border.x0 becomes form.w
+	border.y becomes ref.y+ref.height
+	border.y0 becomes border.y
+	form.lines.add(border)
+	SimpleLabel nameLbl becomes new(SimpleLabel)
+	nameLbl.text becomes "You"
+	nameLbl.y becomes border.y0+1
+	form.addComponent(nameLbl)
+	healthLbl.text becomes "HP: ......./......."
+	wsprintfA(healthLbl.text,"HP: %d/%d",player.currentHealth,player.health)
+	healthLbl.y becomes nameLbl.y+25
+	form.addComponent(healthLbl)
+	int curX becomes 500
+	foreach (e,enemies) {
+		
+		ImageReference ref0 becomes new(ImageReference)
+		e.img becomes ref0
+		ref0.fileName becomes e.spritePath
+		ref0.x becomes curX
+		form.images.add(ref0)
+		RECT btnHb becomes new(RECT)
+		SimpleLabel healthLbl becomes new(SimpleLabel)
+		btnHb becomes form.drawBtn(ref0.x,65,"Attack")
+		e.atkBtn becomes btnHb
+		byte# buff becomes #17
+		healthLbl.text becomes cast(buff+8,str)
+		healthLbl.x becomes ref0.x
+		healthLbl.y becomes 100
+		wsprintfA(healthLbl.text,"%d/%d",e.currentHealth,e.maxHealth)
+		Tuple<RECT,Enemy> tpl becomes new(Tuple<RECT,Enemy>)
+		tpl.item1 becomes btnHb
+		tpl.item2 becomes e
+		Tuple<SimpleLabel,Enemy> tpl0 becomes new(Tuple<SimpleLabel,Enemy>) 
+		tpl0.item1 becomes healthLbl
+		tpl0.item2 becomes e
+		enemyBtns.add(tpl)
+		enemyLbls.add(tpl0)
+		form.addComponent(healthLbl)
+		SimpleLabel enemNameLbl becomes new(SimpleLabel)
+		enemNameLbl.text becomes e.name
+		enemNameLbl.x becomes ref0.x
+		enemNameLbl.y becomes 85
+		form.addComponent(enemNameLbl)
+		if (curX,=,0) { break }
+		curX becomes curX-100
+		
+	}
+	form.rePaint
+}
+
+private func removeLastBox {
+	form.hitboxes.remove(lastIndex)
+}
+
+private func(Enemy enemy,RECT enemyRect) attackEnemy {
+	
+	;TODO attack cooldown (based on player.speed)
+	int dmg becomes player.damage
+	if (player.hitRotation,=,player.critRate) {
+		dmg becomes (dmg*(100+player.critDmg))/100
+		player.hitRotation becomes 1
+	}
+	else { player.hitRotation becomes player.hitRotation+1 }
+	enemy.currentHealth becomes enemy.currentHealth-dmg
+	foreach (tpl,enemyLbls.toArray) {
+		
+		if (tpl.item2,=,enemy) {
+			if (enemy.currentHealth,<=,0) {
+				; Remove image, set health bar to 'RIP' and disable attack btn
+				tpl.item1.text becomes "RIP"
+				int index becomes form.images.indexOf(enemy.img)
+				form.images.remove(index)
+				lastIndex becomes form.hitboxes.indexOf(enemyRect)
+				form.fncExecQueue.add($removeLastBox)
+			}
+			else {
+				wsprintfA(tpl.item1.text,"%d/%d",enemy.currentHealth,enemy.maxHealth)
+			}
+			break
+		}
+		
+	}
+	onCd becomes true
+	foreach (tpl,enemyBtns.toArray) {
+		
+		RECTF whiteBox becomes new(RECTF)
+		whiteBox.left becomes tpl.item1.left
+		whiteBox.right becomes tpl.item1.right+1
+		whiteBox.bottom becomes tpl.item1.bottom+1
+		whiteBox.top becomes tpl.item1.top
+		form.fillRectangles.add(whiteBox)
+		
+	}
+	form.rePaint
+	
+}
+
+private func(CollisionEventArgs args) onClick {
+	
+	if (onCd) { retn }
+	
+	foreach (tpl,enemyBtns.toArray) {
+		
+		if (tpl.item1,=,args.hitbox) {
+			attackEnemy(tpl.item2,tpl.item1)
+			break
+		}
+		
+	}
+	
+}
+
+constructor (Enemy# enems,Player ply,Form rForm) {
+	enemies becomes enems
+	player becomes ply
+	form becomes rForm
+	form.onHitboxLmbDown.addFunction($onClick)
+}

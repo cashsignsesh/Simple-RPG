@@ -1,4 +1,45 @@
-import(C:\Users\GDSPIOSJDGOSDHGJSDhg\Documents\GitHub\Simple-RPG\Classes)
-import(Windows\MessageBox)
+acknowledge Class as int
 
-MessageBox.mboxNumber(Classes.Rogue)
+public constant Class Mage becomes 0
+public constant Class Bard becomes 1
+public constant Class Rogue becomes 2
+public constant Class Warrior becomes 3
+
+public Class class
+public int level becomes 1
+public int skillPoints becomes 1 ; Increase this by 1 for level's every multiple of 5.
+public int statPoints becomes 3 ; Increase this by 3 for level's every multiple of 10. For every multiple of 1, increase by 1.
+
+public int damage becomes 1
+public int speed becomes 1
+public int critDmg becomes 33
+public int health becomes 50
+public int intellect becomes 1
+public int currentHealth becomes health
+public int critRate becomes 5 ; every critRate amount of hits will be a crit
+public int hitRotation becomes 1
+public int exp becomes 0
+
+pullable str sprite becomes "Player.bmp"
+
+public func getClassStr str {
+	
+	switch (class) {
+		case(Mage):
+			retn("Mage")
+			break
+		case(Rogue):
+			retn("Rogue")
+			break
+		case(Bard):
+			retn("Bard")
+			break
+		case(Warrior):
+			retn("Warrior")
+			break
+		default:
+			retn("Illusionist")
+			break
+	}
+	
+}

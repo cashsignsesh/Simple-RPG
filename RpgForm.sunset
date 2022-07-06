@@ -2,102 +2,428 @@ import(Windows/Form)
 import(Windows/SimpleLabel)
 import(Windows/KeyEventArgs)
 import(Windows/RECT)
-
+import(Windows/FormEventArgs)
+import(Windows/Line)
+import(Windows/MouseEventArgs)
+import(Windows/CollisionEventArgs)
+import(ImageReference)
+import(C:\Users\GDSPIOSJDGOSDHGJSDhg\Documents\GitHub\Simple-RPG\Enemy)
 import(C:\Users\GDSPIOSJDGOSDHGJSDhg\Documents\GitHub\Simple-RPG\Player)
+import(C:\Users\GDSPIOSJDGOSDHGJSDhg\Documents\GitHub\Simple-RPG\Battle)
 
-private Form form
-private Player player
+dllref(User32,str,str,int) cdecl:wsprintfA int
+
+
+pullable Form form becomes new(Form,"RPG",100,100,600,400)
+private Player player becomes new(Player)
 private constant int Y becomes 310
 private constant int Y0 becomes 100
 
-constructor {
-	form becomes new(Form,"RPG",100,100,600,400)
-	form.show
-	player becomes new(Player) ; Temp, player should be initialized in RpgForm#promptClass
+RECT mageHb
+RECT rogueHb
+RECT bardHb
+RECT warriorHb
+RECT remainder
+bool promptingClass becomes false
+bool onSkillTree becomes false
+bool selecting becomes false
+
+SimpleLabel indicator becomes new(SimpleLabel)
+indicator.y becomes 245
+indicator.text becomes ""
+form.addComponent(indicator)
+
+str blank becomes ""
+str mageDescription becomes "As a mage, you will have the opportunity to purchase spells"
+str rogueDescription becomes "As a rogue, you will have increased speed and critical strike damage"
+str bardDescription becomes "As a bard, the shop will be 66% cheaper"
+str warriorDescription becomes "As a warrior, you will have increased damage and health"
+
+
+SimpleLabel dmgLbl becomes new(SimpleLabel)
+dmgLbl.text becomes "Damage (....)"
+wsprintfA(dmgLbl.text,"Damage (%d)",player.damage)
+dmgLbl.y becomes 125
+SimpleLabel spdLbl becomes new(SimpleLabel)
+spdLbl.text becomes "Speed (....)"
+wsprintfA(spdLbl.text,"Speed (%d)",player.speed)
+spdLbl.x becomes 100
+spdLbl.y becomes 125
+SimpleLabel critLbl becomes new(SimpleLabel)
+critLbl.text becomes "Crit Damage (.....%)"
+wsprintfA(critLbl.text,"Crit Damage (%d%%)",player.critDmg)
+critLbl.y becomes 225
+SimpleLabel healthLbl becomes new(SimpleLabel)
+healthLbl.text becomes "Health (.......)"
+wsprintfA(healthLbl.text,"Health (%d)",player.health)
+healthLbl.y becomes 175
+SimpleLabel intLbl becomes new(SimpleLabel)
+intLbl.text becomes "Intellect (....)"
+wsprintfA(intLbl.text,"Intellect (%d)",player.intellect)
+intLbl.x becomes 100
+intLbl.y becomes 175
+
+RECT dmgBtn
+RECT spdBtn
+RECT critBtn
+RECT healthBtn
+RECT intBtn
+RECT exitBtn
+
+RECT shopBtn
+RECT arenaBtn
+RECT endlessBtn
+RECT skillTreeBtn
+
+SimpleLabel statpLbl becomes new(SimpleLabel)
+str buff0 becomes "Unused stat points: ..."
+wsprintfA(buff0,"Unused stat points: %d",player.statPoints)
+statpLbl.text becomes buff0
+statpLbl.y becomes 20
+SimpleLabel skillpLbl becomes new(SimpleLabel)
+str buff1 becomes "Unused skill points: ..."
+wsprintfA(buff1,"Unused skill points: %d",player.skillPoints)
+skillpLbl.text becomes buff1
+skillpLbl.y becomes 40
+
+private func wipe {
+
+	form.fncExecQueue.add($form.hitboxes.clear)
+	form.simpleLabels.clear
+	form.lines.clear
+	form.images.clear
+	form.rePaint
+
 }
 
-public func promptClass {
+public func(FormEventArgs args) promptClass {
+	
+	promptingClass becomes true
 	
 	; -- Prompt --
 	SimpleLabel lbl becomes new(SimpleLabel)
 	lbl.text becomes "Select your class"
+	lbl.x becomes 250
 	form.addComponent(lbl)
 	; ------------
 	
-	; -- Rect 1 --
-	RECT r becomes new(RECT)
-	r.left becomes 1
-	r.right becomes 100
-	r.bottom becomes 399
-	r.top becomes 300
-	form.rectangles.add(r)
-	; ------------
+	; -- Lines (Containers) -- 
 	
-	; -- Rect 2 --
-	RECT r0 becomes new(RECT)
-	r0.left becomes 100
-	r0.right becomes 200
-	r0.bottom becomes 399
-	r0.top becomes 300
-	form.rectangles.add(r0)
-	; ------------
-
-	; -- Rect 3 --
-	RECT r1 becomes new(RECT)
-	r1.left becomes 200
-	r1.right becomes 300
-	r1.bottom becomes 399
-	r1.top becomes 300
-	form.rectangles.add(r1)
-	; ------------
-
-	; -- Rect 4 --
-	RECT r2 becomes new(RECT)
-	r2.left becomes 300
-	r2.right becomes 400
-	r2.bottom becomes 399
-	r2.top becomes 300
-	form.rectangles.add(r2)
-	; ------------
+	int Y1 becomes Y-45
+	
+	Line line becomes new(Line)
+	line.y becomes Y1
+	line.x0 becomes 600
+	line.y0 becomes Y1
+	form.lines.add(line)
+	Line line0 becomes new(Line)
+	line0.x becomes 150
+	line0.y becomes Y1
+	line0.x0 becomes 150
+	line0.y0 becomes 370
+	form.lines.add(line0)
+	Line line1 becomes new(Line)
+	line1.x becomes 300
+	line1.y becomes Y1
+	line1.x0 becomes 300
+	line1.y0 becomes 370
+	form.lines.add(line1)
+	Line line2 becomes new(Line)
+	line2.x becomes 0
+	line2.y becomes 370
+	line2.x0 becomes 600
+	line2.y0 becomes 370
+	form.lines.add(line2)
+	Line line3 becomes new(Line)
+	line3.x becomes 450
+	line3.y becomes Y1
+	line3.x0 becomes 450
+	line3.y0 becomes 370
+	form.lines.add(line3)
+	Line line4 becomes new(Line)
+	line4.x becomes 0
+	line4.y becomes Y1
+	line4.x0 becomes 0
+	line4.y0 becomes 370
+	form.lines.add(line4)
+	Line line5 becomes new(Line)
+	line5.x becomes 593
+	line5.y becomes Y1
+	line5.x0 becomes 593
+	line5.y0 becomes 370
+	form.lines.add(line5)
+	; ------------------------
+	
+	; Hitboxes
+	mageHb becomes new(RECT)
+	mageHb.right becomes 150
+	mageHb.bottom becomes 370
+	mageHb.top becomes Y1
+	form.hitboxes.add(mageHb)
+	rogueHb becomes new(RECT)
+	rogueHb.left becomes 151
+	rogueHb.bottom becomes 370
+	rogueHb.top becomes Y1
+	rogueHb.right becomes 300
+	form.hitboxes.add(rogueHb)
+	bardHb becomes new(RECT)
+	bardHb.left becomes 301
+	bardHb.bottom becomes 370
+	bardHb.top becomes Y1
+	bardHb.right becomes 450
+	form.hitboxes.add(bardHb)
+	warriorHb becomes new(RECT)
+	warriorHb.right becomes 600
+	warriorHb.left becomes 451
+	warriorHb.top becomes Y1
+	warriorHb.bottom becomes 370
+	form.hitboxes.add(warriorHb)
+	remainder becomes new(RECT)
+	remainder.right becomes 600
+	remainder.bottom becomes Y1
+	form.hitboxes.add(remainder)
+	; --------
 	
 	; Options
 	SimpleLabel lbl0 becomes new(SimpleLabel)
 	lbl0.text becomes "Mage"
 	lbl0.y becomes Y
-	lbl0.x becomes 2
+	lbl0.x becomes 52
 	SimpleLabel lbl1 becomes new(SimpleLabel)
 	lbl1.text becomes "Rogue"
 	lbl1.y becomes Y
-	lbl1.x becomes 102
+	lbl1.x becomes 202
 	SimpleLabel lbl2 becomes new(SimpleLabel)
 	lbl2.text becomes "Bard"
 	lbl2.y becomes Y
-	lbl2.x becomes 202
+	lbl2.x becomes 352
 	SimpleLabel lbl3 becomes new(SimpleLabel)
 	lbl3.text becomes "Warrior"
 	lbl3.y becomes Y
-	lbl3.x becomes 302
+	lbl3.x becomes 502
 	form.addComponent(lbl0)
 	form.addComponent(lbl1)
 	form.addComponent(lbl2)
 	form.addComponent(lbl3)
 	; -------
 	
-	; Definitions
-	SimpleLabel lbl4 becomes new(SimpleLabel)
-	lbl4.text becomes "You will have the opportunity to purchase spells"
-	lbl4.y becomes Y0
-	SimpleLabel lbl5 becomes new(SimpleLabel)
-	lbl5.text becomes "You will have increased speed and critical strike damage"
-	lbl5.y becomes Y0
-	SimpleLabel lbl6 becomes new(SimpleLabel)
-	lbl6.text becomes "The shop will be 50% cheaper"
-	lbl6.y becomes Y0
-	SimpleLabel lbl7 becomes new(SimpleLabel)
-	lbl7.text becomes "You will have increased damage and health"
-	lbl7.y becomes Y0
-	; -----------
+	form.rePaint
 	
 }
 
+func (CollisionEventArgs args) collision {
+	
+	if (promptingClass) {
+		
+		RECT rect becomes args.hitbox
+		switch (rect) {
+			
+			case(mageHb):
+				if (indicator.text,=/=,mageDescription) {
+					indicator.text becomes mageDescription
+					form.rePaint
+				}
+				break
+			case(rogueHb):
+				if (indicator.text,=/=,rogueDescription) {
+					indicator.text becomes rogueDescription
+					form.rePaint
+				}
+				break
+			case(bardHb):
+				if (indicator.text,=/=,bardDescription) {
+					indicator.text becomes bardDescription
+					form.rePaint
+				}
+				break
+			case(warriorHb):
+				if (indicator.text,=/=,warriorDescription) {
+					indicator.text becomes warriorDescription
+					form.rePaint
+				}
+				break
+			default:
+				if (indicator.text,=/=,blank) {
+					indicator.text becomes blank
+					form.rePaint
+				}
+				break
+			
+		}
+		
+	}
+	
+}
 
+func exitSkillTree {
+	
+	onSkillTree becomes false
+	selecting becomes true
+	shopBtn becomes form.drawBtn(75,300,"Shop")
+	arenaBtn becomes form.drawBtn(275,300,"Arena")
+	endlessBtn becomes form.drawBtn(475,300,"Endless")
+	skillTreeBtn becomes form.drawBtn(262,350,"Skill Tree")
+	; Images for btns
+	ImageReference ref becomes new(ImageReference)
+	ref.fileName becomes "Shop.bmp"
+	ref.width becomes 200
+	ref.height becomes 300
+	form.images.add(ref)
+	ImageReference ref0 becomes new(ImageReference)
+	ref0.fileName becomes "Arena.bmp"
+	ref0.x becomes 200
+	ref0.width becomes 200
+	ref0.height becomes 300
+	form.images.add(ref0)
+	ImageReference ref1 becomes new(ImageReference)
+	ref1.fileName becomes "Endless.bmp"
+	ref1.x becomes 400
+	ref1.width becomes 200
+	ref1.height becomes 300
+	form.images.add(ref1)
+	form.rePaint
+	
+}
+
+func openSkillTree {
+	
+	onSkillTree becomes true
+	
+	; Info Labels
+	SimpleLabel lbl becomes new(SimpleLabel)
+	str buff becomes "Player skill tree (lvl .....)"
+	wsprintfA(buff,"Player skill tree (lvl %d)",player.level)
+	lbl.text becomes buff
+	form.addComponent(lbl)
+	SimpleLabel lbl3 becomes new(SimpleLabel)
+	lbl3.text becomes "Stats"
+	lbl3.x becomes 75
+	lbl3.y becomes 100
+	form.addComponent(lbl3)
+	SimpleLabel lbl2 becomes new(SimpleLabel)
+	lbl2.text becomes player.getClassStr
+	lbl2.y becomes 60
+	form.addComponent(lbl2)
+	form.addComponent(statpLbl)
+	form.addComponent(skillpLbl)
+	; ------------
+	
+	; Buttons
+	exitBtn becomes form.drawBtn(form.w/2-15,352,"Exit")
+	dmgBtn becomes form.drawBtn(0,150,"Upgrade")
+	spdBtn becomes form.drawBtn(100,150,"Upgrade")
+	healthBtn becomes form.drawBtn(0,200,"Upgrade")
+	intBtn becomes form.drawBtn(100,200,"Upgrade")
+	critBtn becomes form.drawBtn(0,250,"Upgrade")
+	; -------
+	
+	; Tree 
+	form.addComponent(critLbl)
+	form.addComponent(healthLbl)
+	form.addComponent(dmgLbl)
+	form.addComponent(spdLbl)
+	form.addComponent(intLbl)
+	; ---
+	
+	form.rePaint
+	
+}
+
+func beginEndless {
+	
+	Enemy stdEnemy becomes new(Enemy)
+	stdEnemy.maxHealth becomes 50
+	stdEnemy.currentHealth becomes 50
+	stdEnemy.damage becomes 1
+	stdEnemy.speed becomes 1
+	stdEnemy.name becomes "Swine"
+	stdEnemy.spritePath becomes "Swine.bmp"
+	stdEnemy.critRate becomes 5
+	Enemy# enemies becomes #,(stdEnemy)
+	Battle battle becomes new(Battle,enemies,player,form)
+	battle.show
+	
+}
+
+func(CollisionEventArgs args) btnClick {
+	
+	RECT rect becomes args.hitbox
+	
+	if (promptingClass) {
+		if (rect,=,remainder) { retn }
+		if (rect,=,mageHb) { player.class becomes player.Mage }
+		if (rect,=,rogueHb) { player.class becomes player.Rogue }
+		if (rect,=,bardHb) { player.class becomes player.Bard }
+		if (rect,=,warriorHb) { player.class becomes player.Warrior }
+		promptingClass becomes false
+		wipe form.fncExecQueue.add($openSkillTree)
+	}
+	else {
+		if (onSkillTree) {
+			
+			if (rect,=,exitBtn) { wipe form.fncExecQueue.add($exitSkillTree) retn }
+			if (player.statPoints,=,0) { retn }
+			
+			switch (rect) {
+				case (dmgBtn):
+					if (player.class,=,player.Warrior) { player.damage becomes player.damage+2 }
+					else { player.damage becomes player.damage+1 }
+					wsprintfA(dmgLbl.text,"Damage (%d)",player.damage)
+					break
+				case (spdBtn):
+					if (player.class,=,player.Rogue) { player.speed becomes player.speed+2 }
+					else { player.speed becomes player.speed+1 }
+					wsprintfA(spdLbl.text,"Speed (%d)",player.speed)
+					break
+				case (healthBtn):
+					if (player.class,=,player.Warrior) { player.health becomes player.health+15 }
+					else { player.health becomes player.health+10 }
+					wsprintfA(healthLbl.text,"Health (%d)",player.health)
+					player.currentHealth becomes player.health
+					break
+				case (intBtn):
+					player.intellect becomes player.intellect+1
+					wsprintfA(intLbl.text,"Intellect (%d)",player.intellect)
+					break
+				case (critBtn):
+					if (player.class,=,player.Rogue) { player.critDmg becomes player.critDmg+3 }
+					else { player.critDmg becomes player.critDmg+2 }
+					wsprintfA(critLbl.text,"Crit Damage (%d%%)",player.critDmg)
+					break
+			}
+			player.statPoints becomes player.statPoints-1
+			wsprintfA(statpLbl.text,"Unused stat points: %d",player.statPoints)
+			form.rePaint
+			
+		}
+		else {
+			if (selecting) {
+				selecting becomes false
+				switch (rect) {
+					case(shopBtn):
+						; ... go to shop
+						break
+					case(arenaBtn):
+						; ... go to arena
+						break
+					case(endlessBtn):
+						wipe form.fncExecQueue.add($beginEndless)
+						break
+					case(skillTreeBtn):
+						wipe form.fncExecQueue.add($openSkillTree)
+						break
+					default:
+						break
+				}
+				form.rePaint
+			}
+		}
+	}
+}
+
+constructor {
+	form.onFormCreation.addFunction($promptClass)
+	form.mouseEnter.addFunction($collision)
+	form.onHitboxLmbDown.addFunction($btnClick)
+	form.show
+}

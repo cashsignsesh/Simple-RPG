@@ -1,12 +1,3 @@
+setpheapvar
 import(C:\Users\GDSPIOSJDGOSDHGJSDhg\Documents\GitHub\Simple-RPG\RpgForm)
-
 RpgForm rform becomes new(RpgForm)
-
-rform.promptClass
-
-; Stats:
-; - Damage
-; - Speed (The rate at which abilities/attacks come off cooldown)
-; - Critical Strike Damage (20% chance for starting at 33% bonus damage, applicable on spells/abilities)
-; - Health
-; - Intellect (Spell damage, and also may be an intellect skill requirement to purchase certain items/spells/abilities)

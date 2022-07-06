@@ -1,9 +1,0 @@
-; ENUM
-; Crude implementation since I haven't implemented enums yet
-
-acknowledge Class as int
-
-public constant static Class Mage becomes 0
-public constant static Class Bard becomes 1
-public constant static Class Rogue becomes 2
-public constant static Class Warrior becomes 3
