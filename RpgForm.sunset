@@ -99,6 +99,7 @@ private func wipe {
 public func(FormEventArgs args) promptClass {
 	
 	promptingClass becomes true
+	form.createTimer(25)
 	
 	; -- Prompt --
 	SimpleLabel lbl becomes new(SimpleLabel)
@@ -332,8 +333,8 @@ func openSkillTree {
 func beginEndless {
 	
 	Enemy stdEnemy becomes new(Enemy)
-	stdEnemy.maxHealth becomes 50
-	stdEnemy.currentHealth becomes 50
+	stdEnemy.maxHealth becomes 20
+	stdEnemy.currentHealth becomes 20
 	stdEnemy.damage becomes 1
 	stdEnemy.speed becomes 1
 	stdEnemy.name becomes "Swine"

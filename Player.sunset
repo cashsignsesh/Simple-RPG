@@ -13,7 +13,7 @@ public int statPoints becomes 3 ; Increase this by 3 for level's every multiple 
 public int damage becomes 1
 public int speed becomes 1
 public int critDmg becomes 33
-public int health becomes 50
+public int health becomes 25
 public int intellect becomes 1
 public int currentHealth becomes health
 public int critRate becomes 5 ; every critRate amount of hits will be a crit

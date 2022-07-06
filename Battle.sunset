@@ -11,6 +11,7 @@ import(Windows/CollisionEventArgs)
 import(Tuple<SimpleLabel,Enemy>)
 import(List<Tuple<SimpleLabel,Enemy>>)
 import(Windows/RECTF)
+import(Windows/TimerEventArgs)
 dllref(User32,str,str,int,int) cdecl:wsprintfA int
 public Enemy# enemies ; allow up to 3 ? or ignore rest after 3
 public Player player
@@ -20,6 +21,10 @@ private List<Tuple<RECT,Enemy>> enemyBtns becomes new(List<Tuple<RECT,Enemy>>)
 private List<Tuple<SimpleLabel,Enemy>> enemyLbls becomes new(List<Tuple<SimpleLabel,Enemy>>)
 private bool onCd becomes false
 private int lastIndex
+private int attackCdMax
+private int attackCd becomes 0
+private int attackCdOnePercentEquivalent
+private RECT attackCdLoadingBar becomes new(RECT)
 
 public func show {
 	
@@ -53,7 +58,6 @@ public func show {
 		RECT btnHb becomes new(RECT)
 		SimpleLabel healthLbl becomes new(SimpleLabel)
 		btnHb becomes form.drawBtn(ref0.x,65,"Attack")
-		e.atkBtn becomes btnHb
 		byte# buff becomes #17
 		healthLbl.text becomes cast(buff+8,str)
 		healthLbl.x becomes ref0.x
@@ -77,6 +81,35 @@ public func show {
 		curX becomes curX-100
 		
 	}
+	Line barLn becomes new(Line)
+	barLn.y becomes healthLbl.y+25
+	barLn.y0 becomes barLn.y
+	barLn.x becomes 1
+	barLn.x0 becomes barLn.x+101
+	Line barLn0 becomes new(Line)
+	barLn0.y becomes barLn.y
+	barLn0.y0 becomes barLn0.y+25
+	barLn0.x becomes barLn.x
+	barLn0.x0 becomes barLn0.x
+	Line barLn1 becomes new(Line)
+	barLn1.y becomes barLn0.y0
+	barLn1.y0 becomes barLn1.y
+	barLn1.x becomes barLn0.x
+	barLn1.x0 becomes barLn.x0
+	Line barLn2 becomes new(Line)
+	barLn2.x becomes barLn.x0
+	barLn2.x0 becomes barLn2.x
+	barLn2.y becomes barLn.y
+	barLn2.y0 becomes barLn0.y0
+	form.lines.add(barLn)
+	form.lines.add(barLn0)
+	form.lines.add(barLn1)
+	form.lines.add(barLn2)
+	attackCdLoadingBar.left becomes barLn.x+1
+	attackCdLoadingBar.top becomes barLn.y+1
+	attackCdLoadingBar.right becomes attackCdLoadingBar.left+100
+	attackCdLoadingBar.bottom becomes attackCdLoadingBar.top+24
+	form.rectangles.add(attackCdLoadingBar)
 	form.rePaint
 }
 
@@ -123,6 +156,8 @@ private func(Enemy enemy,RECT enemyRect) attackEnemy {
 		form.fillRectangles.add(whiteBox)
 		
 	}
+	attackCd becomes attackCdMax
+	attackCdLoadingBar.right becomes attackCdLoadingBar.left
 	form.rePaint
 	
 }
@@ -142,9 +177,28 @@ private func(CollisionEventArgs args) onClick {
 	
 }
 
+private func(TimerEventArgs args) onTick {
+	
+	if (attackCd,=,0) { retn }
+	if (attackCd,=,1) { 
+		onCd becomes false
+		form.fillRectangles.clear
+		form.rePaint
+	}
+	attackCd becomes attackCd-1
+	if (attackCd%attackCdOnePercentEquivalent,=,0) {
+		attackCdLoadingBar.right becomes attackCdLoadingBar.right+1
+		form.rePaint
+	}
+	
+}
+
 constructor (Enemy# enems,Player ply,Form rForm) {
 	enemies becomes enems
 	player becomes ply
 	form becomes rForm
+	attackCdMax becomes (10/player.speed)*10
+	attackCdOnePercentEquivalent becomes attackCdMax/100
 	form.onHitboxLmbDown.addFunction($onClick)
+	form.onTimerTick.addFunction($onTick)
 }
