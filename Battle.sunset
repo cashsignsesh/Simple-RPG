@@ -12,6 +12,8 @@ import(Tuple<SimpleLabel,Enemy>)
 import(List<Tuple<SimpleLabel,Enemy>>)
 import(Windows/RECTF)
 import(Windows/TimerEventArgs)
+import(Event<int>)
+import(C:\Users\GDSPIOSJDGOSDHGJSDhg\Documents\GitHub\Simple-RPG\BattleFinishArgs)
 dllref(User32,str,str,int,int) cdecl:wsprintfA int
 public Enemy# enemies ; allow up to 3 ? or ignore rest after 3
 public Player player
@@ -22,9 +24,26 @@ private List<Tuple<SimpleLabel,Enemy>> enemyLbls becomes new(List<Tuple<SimpleLa
 private bool onCd becomes false
 private int lastIndex
 private int attackCdMax
-private int attackCd becomes 0
-private int attackCdOnePercentEquivalent
+private int attackCdTenPercentEquivalent
 private RECT attackCdLoadingBar becomes new(RECT)
+private int expGained
+private int enemiesKilled
+pullable Event<int> onBattleEnd becomes new(Event<int>)
+private bool playerWon
+
+private func fillWhiteboxes {
+
+	foreach (tpl,enemyBtns.toArray) {
+			
+		RECTF whiteBox becomes new(RECTF)
+		whiteBox.left becomes tpl.item1.left
+		whiteBox.right becomes tpl.item1.right+1
+		whiteBox.bottom becomes tpl.item1.bottom+1
+		whiteBox.top becomes tpl.item1.top
+		form.fillRectangles.add(whiteBox)
+		
+	}
+}
 
 public func show {
 	
@@ -77,6 +96,7 @@ public func show {
 		enemNameLbl.x becomes ref0.x
 		enemNameLbl.y becomes 85
 		form.addComponent(enemNameLbl)
+		e.attackCdMax becomes (25/(e.speed+3))*10
 		if (curX,=,0) { break }
 		curX becomes curX-100
 		
@@ -110,11 +130,77 @@ public func show {
 	attackCdLoadingBar.right becomes attackCdLoadingBar.left+100
 	attackCdLoadingBar.bottom becomes attackCdLoadingBar.top+24
 	form.rectangles.add(attackCdLoadingBar)
+	if (player.attackCd,=/=,0) {
+		fillWhiteboxes
+		onCd becomes true
+		attackCdLoadingBar.right becomes attackCdLoadingBar.left+10*attackCdTenPercentEquivalent/player.attackCd
+	}
 	form.rePaint
 }
 
 private func removeLastBox {
 	form.hitboxes.remove(lastIndex)
+}
+private func finishBattle {
+	BattleFinishArgs args becomes new(BattleFinishArgs)
+	args.expGained becomes expGained
+	args.playerWon becomes playerWon
+	onBattleEnd.raise(args)
+}
+
+private func(Enemy e) attackPlayer {
+	
+	; Show basic animation to indicate that enemy is attacking ...
+	; Undone
+	
+	; Enemy critting ...
+	int dmg becomes e.damage
+	if (e.hitRotation,=,e.critRate) {
+		dmg becomes (dmg*(100+e.critDmg))/100
+		e.hitRotation becomes 1
+	}
+	else { e.hitRotation becomes e.hitRotation+1 }
+	
+	player.currentHealth becomes player.currentHealth-dmg
+	if (player.currentHealth,<=,0) {
+		; Player dead
+		player.attackCd becomes 0
+		form.fncExecQueue.add($form.onTimerTick.clearFunctions)
+		form.fncExecQueue.add($form.fillRectangles.clear)
+		playerWon becomes false
+		form.fncExecQueue.add($finishBattle)
+	}
+	else { wsprintfA(healthLbl.text,"HP: %d/%d",player.currentHealth,player.health) }
+	form.rePaint
+	
+}
+
+private func(TimerEventArgs args) onTick {
+	
+	; Enemies fighting back...
+	foreach (e,enemies) {
+		if (e.dead) { continue }
+		if (e.attackCd,=,0) {
+			e.attackCd becomes e.attackCdMax
+			attackPlayer(e)
+			continue
+		}
+		e.attackCd becomes e.attackCd-1
+	}
+	
+	; Player fighting...
+	if (player.attackCd,=,0) { retn }
+	if (player.attackCd,=,1) { 
+		onCd becomes false
+		form.fillRectangles.clear
+		form.rePaint
+	}
+	player.attackCd becomes player.attackCd-1
+	if (player.attackCd%attackCdTenPercentEquivalent,=,0) {
+		attackCdLoadingBar.right becomes attackCdLoadingBar.right+10
+		form.rePaint
+	}
+	
 }
 
 private func(Enemy enemy,RECT enemyRect) attackEnemy {
@@ -137,6 +223,17 @@ private func(Enemy enemy,RECT enemyRect) attackEnemy {
 				form.images.remove(index)
 				lastIndex becomes form.hitboxes.indexOf(enemyRect)
 				form.fncExecQueue.add($removeLastBox)
+				expGained becomes expGained+((enemy.maxHealth/5)+enemy.damage+enemy.speed)
+				++enemiesKilled
+				tpl.item2.dead becomes true
+				if (enemiesKilled,=,lengthof(enemies)) {
+					; Finish battle...
+					; Keep in mind at this point removeLastBox is in the fncExecQueue
+					form.onTimerTick.removeFunction($onTick)
+					form.fncExecQueue.add($form.fillRectangles.clear)
+					playerWon becomes true
+					form.fncExecQueue.add($finishBattle)
+				}
 			}
 			else {
 				wsprintfA(tpl.item1.text,"%d/%d",enemy.currentHealth,enemy.maxHealth)
@@ -146,17 +243,8 @@ private func(Enemy enemy,RECT enemyRect) attackEnemy {
 		
 	}
 	onCd becomes true
-	foreach (tpl,enemyBtns.toArray) {
-		
-		RECTF whiteBox becomes new(RECTF)
-		whiteBox.left becomes tpl.item1.left
-		whiteBox.right becomes tpl.item1.right+1
-		whiteBox.bottom becomes tpl.item1.bottom+1
-		whiteBox.top becomes tpl.item1.top
-		form.fillRectangles.add(whiteBox)
-		
-	}
-	attackCd becomes attackCdMax
+	fillWhiteboxes
+	player.attackCd becomes attackCdMax
 	attackCdLoadingBar.right becomes attackCdLoadingBar.left
 	form.rePaint
 	
@@ -177,28 +265,12 @@ private func(CollisionEventArgs args) onClick {
 	
 }
 
-private func(TimerEventArgs args) onTick {
-	
-	if (attackCd,=,0) { retn }
-	if (attackCd,=,1) { 
-		onCd becomes false
-		form.fillRectangles.clear
-		form.rePaint
-	}
-	attackCd becomes attackCd-1
-	if (attackCd%attackCdOnePercentEquivalent,=,0) {
-		attackCdLoadingBar.right becomes attackCdLoadingBar.right+1
-		form.rePaint
-	}
-	
-}
-
 constructor (Enemy# enems,Player ply,Form rForm) {
 	enemies becomes enems
 	player becomes ply
 	form becomes rForm
-	attackCdMax becomes (10/player.speed)*10
-	attackCdOnePercentEquivalent becomes attackCdMax/100
+	attackCdMax becomes (25/(player.speed+3))*10
+	attackCdTenPercentEquivalent becomes attackCdMax/10
 	form.onHitboxLmbDown.addFunction($onClick)
 	form.onTimerTick.addFunction($onTick)
 }

@@ -10,9 +10,10 @@ import(ImageReference)
 import(C:\Users\GDSPIOSJDGOSDHGJSDhg\Documents\GitHub\Simple-RPG\Enemy)
 import(C:\Users\GDSPIOSJDGOSDHGJSDhg\Documents\GitHub\Simple-RPG\Player)
 import(C:\Users\GDSPIOSJDGOSDHGJSDhg\Documents\GitHub\Simple-RPG\Battle)
+import(C:\Users\GDSPIOSJDGOSDHGJSDhg\Documents\GitHub\Simple-RPG\BattleFinishArgs)
+import(Random)
 
 dllref(User32,str,str,int) cdecl:wsprintfA int
-
 
 pullable Form form becomes new(Form,"RPG",100,100,600,400)
 private Player player becomes new(Player)
@@ -77,14 +78,14 @@ RECT skillTreeBtn
 
 SimpleLabel statpLbl becomes new(SimpleLabel)
 str buff0 becomes "Unused stat points: ..."
-wsprintfA(buff0,"Unused stat points: %d",player.statPoints)
 statpLbl.text becomes buff0
 statpLbl.y becomes 20
 SimpleLabel skillpLbl becomes new(SimpleLabel)
 str buff1 becomes "Unused skill points: ..."
-wsprintfA(buff1,"Unused skill points: %d",player.skillPoints)
 skillpLbl.text becomes buff1
 skillpLbl.y becomes 40
+
+int endlessStage
 
 private func wipe {
 
@@ -92,6 +93,7 @@ private func wipe {
 	form.simpleLabels.clear
 	form.lines.clear
 	form.images.clear
+	form.rectangles.clear
 	form.rePaint
 
 }
@@ -307,6 +309,43 @@ func openSkillTree {
 	form.addComponent(lbl2)
 	form.addComponent(statpLbl)
 	form.addComponent(skillpLbl)
+	SimpleLabel xpLbl becomes new(SimpleLabel)
+	xpLbl.text becomes "EXP"
+	xpLbl.x becomes form.w-155
+	xpLbl.y becomes 6
+	form.addComponent(xpLbl)
+	Line barLn becomes new(Line)
+	barLn.x becomes xpLbl.x+37
+	barLn.x0 becomes barLn.x+102
+	barLn.y becomes 1
+	barLn.y0 becomes barLn.y
+	Line barLn0 becomes new(Line)
+	barLn0.y becomes barLn.y0
+	barLn0.y0 becomes barLn.y+27
+	barLn0.x becomes barLn.x0
+	barLn0.x0 becomes barLn0.x
+	form.lines.add(barLn)
+	form.lines.add(barLn0)
+	Line barLn1 becomes new(Line)
+	barLn1.x becomes barLn.x
+	barLn1.x0 becomes barLn.x
+	barLn1.y becomes barLn0.y
+	barLn1.y0 becomes barLn0.y0
+	Line barLn2 becomes new(Line)
+	barLn2.x becomes barLn.x
+	barLn2.x0 becomes barLn.x0
+	barLn2.y becomes barLn1.y0
+	barLn2.y0 becomes barLn2.y
+	form.lines.add(barLn1)
+	form.lines.add(barLn2)
+	RECT fillBar becomes new(RECT)
+	fillBar.left becomes barLn.x+1
+	fillBar.top becomes barLn.y+1
+	fillBar.bottom becomes barLn.y+27
+	fillBar.right becomes fillBar.left+((player.exp*100)/(player.expTillNextLvl))
+	form.rectangles.add(fillBar)
+	wsprintfA(buff1,"Unused skill points: %d",player.skillPoints)
+	wsprintfA(buff0,"Unused stat points: %d",player.statPoints)
 	; ------------
 	
 	; Buttons
@@ -330,18 +369,91 @@ func openSkillTree {
 	
 }
 
+func(Enemy enemy) calcEnemyDifficulty int {
+	
+	retn((enemy.maxHealth/3)+enemy.damage+enemy.speed)
+	
+}
+
+func(int difficulty) genEnemyWithDifficulty Enemy {
+	
+	Enemy enemy becomes new(Enemy)
+	enemy.maxHealth becomes 5
+	enemy.currentHealth becomes enemy.maxHealth
+	enemy.damage becomes 1
+	enemy.speed becomes 1
+	enemy.name becomes "Swine"
+	enemy.spritePath becomes "Swine.bmp"
+	enemy.critRate becomes 5
+	enemy.critDmg becomes 33
+	retn(enemy)
+	
+}
+
+func(int difficulty) generateEnemies Enemy# {
+	
+	int enemies
+	if (difficulty,<=,20) { enemies becomes 1 }
+	else { 
+		if (difficulty,>,20) {
+			if (difficulty,<,40) {
+				enemies becomes Random.gen(2)+1
+			}
+			else {
+				enemies becomes Random.gen(3)+2
+			}
+		}
+	}
+	
+	int diffPerEnemy becomes difficulty/enemies
+	Enemy# enemyArr becomes #enemies
+	int i becomes 0
+	while (i,=/=,enemies) {
+		enemyArr[i] becomes genEnemyWithDifficulty(diffPerEnemy)
+		++i
+	}
+	retn(enemyArr)
+	
+}
+
+func(BattleFinishArgs args) battleEnded {
+	
+	; -Return to skill tree--------------------
+	player.addExp(args.expGained)
+	wipe
+	if (endlessStage,=/=,0) { 
+		if (!args.playerWon) {
+			endlessStage becomes 0
+			form.fncExecQueue.add($openSkillTree)
+			retn
+		}
+		else {
+			++endlessStage
+			Enemy# enemies becomes generateEnemies(endlessStage*10)
+			Battle battle becomes new(Battle,enemies,player,form)
+			battle.onBattleEnd.addFunction($battleEnded)
+			form.fncExecQueue.add($battle.show)
+		}
+	}
+	; -----------------------------------------
+	
+}
+
 func beginEndless {
 	
+	endlessStage becomes 1
 	Enemy stdEnemy becomes new(Enemy)
-	stdEnemy.maxHealth becomes 20
-	stdEnemy.currentHealth becomes 20
+	stdEnemy.maxHealth becomes 5
+	stdEnemy.currentHealth becomes stdEnemy.maxHealth
 	stdEnemy.damage becomes 1
 	stdEnemy.speed becomes 1
 	stdEnemy.name becomes "Swine"
 	stdEnemy.spritePath becomes "Swine.bmp"
 	stdEnemy.critRate becomes 5
+	stdEnemy.critDmg becomes 33
 	Enemy# enemies becomes #,(stdEnemy)
 	Battle battle becomes new(Battle,enemies,player,form)
+	battle.onBattleEnd.addFunction($battleEnded)
 	battle.show
 	
 }
@@ -377,8 +489,8 @@ func(CollisionEventArgs args) btnClick {
 					wsprintfA(spdLbl.text,"Speed (%d)",player.speed)
 					break
 				case (healthBtn):
-					if (player.class,=,player.Warrior) { player.health becomes player.health+15 }
-					else { player.health becomes player.health+10 }
+					if (player.class,=,player.Warrior) { player.health becomes player.health+5 }
+					else { player.health becomes player.health+3 }
 					wsprintfA(healthLbl.text,"Health (%d)",player.health)
 					player.currentHealth becomes player.health
 					break
@@ -416,7 +528,6 @@ func(CollisionEventArgs args) btnClick {
 					default:
 						break
 				}
-				form.rePaint
 			}
 		}
 	}

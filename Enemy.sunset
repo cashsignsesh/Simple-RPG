@@ -15,3 +15,7 @@ public Item dropItem
 public int dropItemChance ; as a %
 public int hitRotation becomes 1
 public ImageReference img
+public int attackCd becomes 20
+public int attackCdMax
+public int animationTicks
+public bool dead becomes false
