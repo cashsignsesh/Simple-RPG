@@ -12,8 +12,17 @@ import(C:\Users\GDSPIOSJDGOSDHGJSDhg\Documents\GitHub\Simple-RPG\Player)
 import(C:\Users\GDSPIOSJDGOSDHGJSDhg\Documents\GitHub\Simple-RPG\Battle)
 import(C:\Users\GDSPIOSJDGOSDHGJSDhg\Documents\GitHub\Simple-RPG\BattleFinishArgs)
 import(Random)
+import(C:\Users\GDSPIOSJDGOSDHGJSDhg\Documents\GitHub\Simple-RPG\Shop)
+import(C:\Users\GDSPIOSJDGOSDHGJSDhg\Documents\GitHub\Simple-RPG\ShopEntry)
+import(C:\Users\GDSPIOSJDGOSDHGJSDhg\Documents\GitHub\Simple-RPG\Arena)
 
 dllref(User32,str,str,int) cdecl:wsprintfA int
+
+;TODO
+; - spells
+
+;Next project
+; - New components for Form.sunset like progress bar
 
 pullable Form form becomes new(Form,"RPG",100,100,600,400)
 private Player player becomes new(Player)
@@ -37,30 +46,24 @@ form.addComponent(indicator)
 str blank becomes ""
 str mageDescription becomes "As a mage, you will have the opportunity to purchase spells"
 str rogueDescription becomes "As a rogue, you will have increased speed and critical strike damage"
-str bardDescription becomes "As a bard, the shop will be 66% cheaper"
+str bardDescription becomes "As a bard, you will gain double gold in endless mode"
 str warriorDescription becomes "As a warrior, you will have increased damage and health"
-
 
 SimpleLabel dmgLbl becomes new(SimpleLabel)
 dmgLbl.text becomes "Damage (....)"
-wsprintfA(dmgLbl.text,"Damage (%d)",player.damage)
 dmgLbl.y becomes 125
 SimpleLabel spdLbl becomes new(SimpleLabel)
 spdLbl.text becomes "Speed (....)"
-wsprintfA(spdLbl.text,"Speed (%d)",player.speed)
 spdLbl.x becomes 100
 spdLbl.y becomes 125
 SimpleLabel critLbl becomes new(SimpleLabel)
 critLbl.text becomes "Crit Damage (.....%)"
-wsprintfA(critLbl.text,"Crit Damage (%d%%)",player.critDmg)
 critLbl.y becomes 225
 SimpleLabel healthLbl becomes new(SimpleLabel)
 healthLbl.text becomes "Health (.......)"
-wsprintfA(healthLbl.text,"Health (%d)",player.health)
 healthLbl.y becomes 175
 SimpleLabel intLbl becomes new(SimpleLabel)
 intLbl.text becomes "Intellect (....)"
-wsprintfA(intLbl.text,"Intellect (%d)",player.intellect)
 intLbl.x becomes 100
 intLbl.y becomes 175
 
@@ -80,12 +83,125 @@ SimpleLabel statpLbl becomes new(SimpleLabel)
 str buff0 becomes "Unused stat points: ..."
 statpLbl.text becomes buff0
 statpLbl.y becomes 20
-SimpleLabel skillpLbl becomes new(SimpleLabel)
-str buff1 becomes "Unused skill points: ..."
-skillpLbl.text becomes buff1
-skillpLbl.y becomes 40
 
 int endlessStage
+
+; Define entries
+; If mage, include spell entries
+func purchaseApple {
+	player.apples becomes player.apples+1
+}
+func purchaseMagicBeans {
+	player.addExp(player.expTillNextLvl/5)
+}
+func purchaseClover {
+	player.critDmg becomes player.critDmg+10
+}
+func purchaseBook {
+	player.hasChemistryBook becomes true
+}
+func purchaseBreastplate {
+	player.breastplateEquipped becomes true
+	player.health becomes (player.health/3)*4
+	player.currentHealth becomes player.health
+}
+func purchaseShinguard {
+	player.shinguardEquipped becomes true
+}
+func purchaseHelmet {
+	player.helmetEquipped becomes true
+}
+func purchaseGloves {
+	player.critRate becomes 3
+}
+func purchaseAR15 {
+	player.ar15Equipped becomes true
+}
+func purchaseTrophyCase {
+	player.hasTrophyCase becomes true
+}
+private ShopEntry# entries becomes #10
+ShopEntry entry becomes new(ShopEntry)
+entry.name becomes "Apple"
+entry.cost becomes 50
+entry.description becomes "Heal 33% of your health mid-battle. Cost 50g"
+entry.onPurchase becomes $purchaseApple
+entries[0] becomes entry
+ShopEntry entry0 becomes new(ShopEntry)
+entry0.name becomes "Magic beans"
+entry0.cost becomes 200
+entry0.description becomes "Immediately grant 20% EXP progress to next level. Cost 200g"
+entry0.onPurchase becomes $purchaseMagicBeans
+entries[1] becomes entry0
+ShopEntry entry1 becomes new(ShopEntry)
+entry1.name becomes "4 leaf clover"
+entry1.cost becomes 350
+entry1.description becomes "Gain 10% bonus crit damage. Requires 10 intellect. Cost 350g"
+entry1.onPurchase becomes $purchaseClover
+entry1.intellectRequirement becomes 10
+entries[2] becomes entry1
+ShopEntry entry2 becomes new(ShopEntry)
+entry2.name becomes "Chemistry book"
+entry2.cost becomes 300
+entry2.description becomes "Apples become 2x as effective. Requires 20 intellect. Cost 300g"
+entry2.onPurchase becomes $purchaseBook
+entry2.intellectRequirement becomes 20
+entry2.oneTimePurchase becomes true
+entries[3] becomes entry2
+
+; Breastplate - Increases health by 33% (1000g)
+; Shinguard - Decreases speed of enemy by up to ten (1500g)
+; Helmet - Reduce incoming damage of each attack by 1 (500g)
+; Gloves - Increase crit chance by 40% (player.critRate from 5 to 3) (500g)
+; AR 15 - Deal 20 damage to each opponent in combat. 10sec cooldown. (15 intellect, 750g)
+; Trophy case - Permanently gain 1 damage for every 10 enemies killed. (2500g)
+
+ShopEntry entry3 becomes new(ShopEntry)
+entry3.name becomes "Breastplate"
+entry3.cost becomes 1000
+entry3.description becomes "Increases health by 33%. Cost 1000g"
+entry3.onPurchase becomes $purchaseBreastplate
+entry3.oneTimePurchase becomes true
+entries[4] becomes entry3
+ShopEntry entry4 becomes new(ShopEntry)
+entry4.name becomes "Shinguard"
+entry4.cost becomes 1500
+entry4.description becomes "Decreases speed of enemy by up to ten. Cost 1500g"
+entry4.onPurchase becomes $purchaseShinguard
+entry4.oneTimePurchase becomes true
+entries[5] becomes entry4
+ShopEntry entry5 becomes new(ShopEntry)
+entry5.name becomes "Helmet"
+entry5.cost becomes 500
+entry5.description becomes "Reduce incoming damage of each attack by 1. Cost 500g"
+entry5.onPurchase becomes $purchaseHelmet
+entry5.oneTimePurchase becomes true
+entries[6] becomes entry5
+ShopEntry entry6 becomes new(ShopEntry)
+entry6.name becomes "Gloves"
+entry6.cost becomes 500
+entry6.description becomes "Increase crit chance by 60% (from 20% to 33%). Cost 500g"
+entry6.onPurchase becomes $purchaseGloves
+entry6.oneTimePurchase becomes true
+entries[7] becomes entry6
+ShopEntry entry7 becomes new(ShopEntry)
+entry7.name becomes "AR 15"
+entry7.cost becomes 750
+entry7.description becomes "Deal 20 damage to everyone, 10s cooldown. (15 intellect, 750g)"
+entry7.onPurchase becomes $purchaseAR15
+entry7.intellectRequirement becomes 15
+entry7.oneTimePurchase becomes true
+entries[8] becomes entry7
+ShopEntry entry8 becomes new(ShopEntry)
+entry8.name becomes "Trophy case"
+entry8.cost becomes 2500
+entry8.description becomes "Permanently gain 1 dmg for every 10 enemies killed. Cost 2500g"
+entry8.onPurchase becomes $purchaseTrophyCase
+entry8.oneTimePurchase becomes true
+entries[9] becomes entry8
+Shop shop becomes new(Shop,form,player,entries)
+
+Arena arena becomes new(Arena,form,player)
 
 private func wipe {
 
@@ -305,10 +421,9 @@ func openSkillTree {
 	form.addComponent(lbl3)
 	SimpleLabel lbl2 becomes new(SimpleLabel)
 	lbl2.text becomes player.getClassStr
-	lbl2.y becomes 60
+	lbl2.y becomes 40
 	form.addComponent(lbl2)
 	form.addComponent(statpLbl)
-	form.addComponent(skillpLbl)
 	SimpleLabel xpLbl becomes new(SimpleLabel)
 	xpLbl.text becomes "EXP"
 	xpLbl.x becomes form.w-155
@@ -344,7 +459,6 @@ func openSkillTree {
 	fillBar.bottom becomes barLn.y+27
 	fillBar.right becomes fillBar.left+((player.exp*100)/(player.expTillNextLvl))
 	form.rectangles.add(fillBar)
-	wsprintfA(buff1,"Unused skill points: %d",player.skillPoints)
 	wsprintfA(buff0,"Unused stat points: %d",player.statPoints)
 	; ------------
 	
@@ -365,6 +479,12 @@ func openSkillTree {
 	form.addComponent(intLbl)
 	; ---
 	
+	wsprintfA(dmgLbl.text,"Damage (%d)",player.damage)
+	wsprintfA(spdLbl.text,"Speed (%d)",player.speed)
+	wsprintfA(healthLbl.text,"Health (%d)",player.health)
+	wsprintfA(intLbl.text,"Intellect (%d)",player.intellect)
+	wsprintfA(critLbl.text,"Crit Damage (%d%%)",player.critDmg)
+	
 	form.rePaint
 	
 }
@@ -377,15 +497,109 @@ func(Enemy enemy) calcEnemyDifficulty int {
 
 func(int difficulty) genEnemyWithDifficulty Enemy {
 	
+	; Generate random sprite, if difficulty is high enough
+	; If sprite is swine, difficulty doesn't change
+	; If sprite is ghoul or some other sprite, difficulty-10 but give extra speed and less damage. For example
+	; Also, randomize damage/speed/health a bit
+	
+	int spriteRdm
+	int spriteRdmMax becomes 0
+	; Any difficulty: Swine (0)
+	; 30+ difficulty: Ghoul (1)
+	; 100+ difficulty: Cop (2)
+	; 300+ difficulty: Butcher Man (3)
+	if (difficulty,>=,20) { ++spriteRdmMax }
+	if (difficulty,>=,75) { ++spriteRdmMax }
+	if (difficulty,>=,100) { ++spriteRdmMax }
+	if (difficulty,>=,155) { ++spriteRdmMax }
+	if (difficulty,>=,175) { ++spriteRdmMax }
+	spriteRdm becomes Random.genXch(spriteRdmMax)
+	
 	Enemy enemy becomes new(Enemy)
-	enemy.maxHealth becomes 5
-	enemy.currentHealth becomes enemy.maxHealth
-	enemy.damage becomes 1
-	enemy.speed becomes 1
-	enemy.name becomes "Swine"
-	enemy.spritePath becomes "Swine.bmp"
-	enemy.critRate becomes 5
-	enemy.critDmg becomes 33
+	switch (spriteRdm) {
+		case(0): ; (Swine)
+			enemy.maxHealth becomes difficulty/3
+			enemy.currentHealth becomes enemy.maxHealth
+			enemy.damage becomes difficulty/9
+			enemy.speed becomes difficulty/9
+			enemy.name becomes "Swine"
+			enemy.spritePath becomes "Swine.bmp"
+			enemy.critRate becomes 5
+			enemy.critDmg becomes 33
+			enemy.goldOnKill becomes 1
+			break
+		case(1): ; (Ghoul)
+			enemy.maxHealth becomes difficulty/6
+			enemy.currentHealth becomes enemy.maxHealth
+			enemy.damage becomes difficulty/12
+			enemy.speed becomes difficulty/3
+			enemy.name becomes "Ghoul"
+			enemy.spritePath becomes "Ghoul.bmp"
+			enemy.critRate becomes 3
+			enemy.critDmg becomes 100
+			enemy.bonusXp becomes difficulty/10
+			enemy.goldOnKill becomes 2
+			break
+		case(2): ; (Cop)
+			enemy.maxHealth becomes difficulty
+			enemy.currentHealth becomes enemy.maxHealth
+			enemy.damage becomes difficulty/4
+			enemy.speed becomes difficulty/30
+			enemy.name becomes "Cop"
+			enemy.spritePath becomes "Cop.bmp"
+			enemy.critRate becomes 5
+			enemy.critDmg becomes 33
+			enemy.bonusXp becomes difficulty/8
+			enemy.attackCd becomes 150
+			enemy.goldOnKill becomes 3
+			break
+		case(3): ; (Butcher Man)
+			enemy.maxHealth becomes difficulty*2
+			enemy.currentHealth becomes enemy.maxHealth
+			enemy.damage becomes difficulty
+			enemy.speed becomes difficulty/50
+			enemy.name becomes "Butcher Man"
+			enemy.spritePath becomes "ButcherMan.bmp"
+			enemy.critRate becomes 5
+			enemy.critDmg becomes 33
+			enemy.bonusXp becomes difficulty/6
+			enemy.attackCd becomes 200
+			enemy.goldOnKill becomes 4
+			break
+		case(4): ; (Sniper)
+			enemy.maxHealth becomes difficulty/3+10
+			enemy.currentHealth becomes enemy.maxHealth
+			enemy.damage becomes difficulty*4
+			enemy.speed becomes difficulty/100
+			enemy.name becomes "Sniper"
+			enemy.spritePath becomes "Sniper.bmp"
+			enemy.critRate becomes 5
+			enemy.critDmg becomes 33
+			enemy.bonusXp becomes difficulty/8
+			enemy.attackCd becomes 300
+			enemy.goldOnKill becomes 4
+			break
+		case(5): ; (Cloud)
+			enemy.maxHealth becomes 1
+			enemy.currentHealth becomes enemy.maxHealth
+			enemy.damage becomes difficulty/20
+			enemy.speed becomes difficulty/2
+			enemy.name becomes "Cloud"
+			enemy.spritePath becomes "Cloud.bmp"
+			enemy.critRate becomes 2
+			enemy.critDmg becomes 200
+			enemy.bonusXp becomes difficulty
+			enemy.attackCd becomes 10
+			enemy.goldOnKill becomes 2
+			break
+	}
+	if (enemy.damage,=,0) { enemy.damage becomes 1 }
+	if (player.shinguardEquipped) { enemy.speed becomes enemy.speed-10 }
+	if (enemy.speed,<=,0) { enemy.speed becomes 1 }
+	if (enemy.maxHealth,=,0) {
+		enemy.maxHealth becomes 1
+		enemy.currentHealth becomes 1
+	} 
 	retn(enemy)
 	
 }
@@ -418,13 +632,18 @@ func(int difficulty) generateEnemies Enemy# {
 
 func(BattleFinishArgs args) battleEnded {
 	
-	; -Return to skill tree--------------------
 	player.addExp(args.expGained)
+	player.gold becomes player.gold+args.goldGained
+	if (player.class,=,player.Bard) {
+		player.gold becomes player.gold+args.goldGained
+	}
 	wipe
+	; -Endless --------------------------------
 	if (endlessStage,=/=,0) { 
 		if (!args.playerWon) {
 			endlessStage becomes 0
 			form.fncExecQueue.add($openSkillTree)
+			player.ar15Cd becomes 0
 			retn
 		}
 		else {
@@ -451,10 +670,18 @@ func beginEndless {
 	stdEnemy.spritePath becomes "Swine.bmp"
 	stdEnemy.critRate becomes 5
 	stdEnemy.critDmg becomes 33
+	stdEnemy.goldOnKill becomes 1
 	Enemy# enemies becomes #,(stdEnemy)
 	Battle battle becomes new(Battle,enemies,player,form)
 	battle.onBattleEnd.addFunction($battleEnded)
 	battle.show
+	
+}
+
+func onShopExit {
+	
+	wipe
+	form.fncExecQueue.add($exitSkillTree)
 	
 }
 
@@ -489,8 +716,11 @@ func(CollisionEventArgs args) btnClick {
 					wsprintfA(spdLbl.text,"Speed (%d)",player.speed)
 					break
 				case (healthBtn):
-					if (player.class,=,player.Warrior) { player.health becomes player.health+5 }
-					else { player.health becomes player.health+3 }
+					int up
+					if (player.class,=,player.Warrior) { up becomes 5 }
+					else { up becomes 3 }
+					if (player.breastplateEquipped) { up becomes (up/3)*4 }
+					player.health becomes player.health+up
 					wsprintfA(healthLbl.text,"Health (%d)",player.health)
 					player.currentHealth becomes player.health
 					break
@@ -514,15 +744,18 @@ func(CollisionEventArgs args) btnClick {
 				selecting becomes false
 				switch (rect) {
 					case(shopBtn):
-						; ... go to shop
+						wipe form.fncExecQueue.add($shop.show)
 						break
 					case(arenaBtn):
 						; ... go to arena
+						wipe form.fncExecQueue.add($arena.show)
 						break
 					case(endlessBtn):
+						; ... go to endless
 						wipe form.fncExecQueue.add($beginEndless)
 						break
 					case(skillTreeBtn):
+						; ... go to skill tree
 						wipe form.fncExecQueue.add($openSkillTree)
 						break
 					default:
@@ -537,5 +770,7 @@ constructor {
 	form.onFormCreation.addFunction($promptClass)
 	form.mouseEnter.addFunction($collision)
 	form.onHitboxLmbDown.addFunction($btnClick)
+	shop.onExitFnc becomes $onShopExit
+	arena.onExitFnc becomes $onShopExit
 	form.show
 }

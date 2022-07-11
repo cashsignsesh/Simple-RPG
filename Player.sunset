@@ -7,8 +7,7 @@ public constant Class Warrior becomes 3
 
 public Class class
 public int level becomes 1
-public int skillPoints becomes 1 ; Increase this by 1 for level's every multiple of 5.
-public int statPoints becomes 3 ; Increase this by 3 for level's every multiple of 10. For every multiple of 1, increase by 1.
+public int statPoints becomes 30 ; Increase this by 3 for level's every multiple of 10. For every multiple of 1, increase by 1.
 
 public int damage becomes 1
 public int speed becomes 1
@@ -21,6 +20,16 @@ public int hitRotation becomes 1
 pullable int exp
 pullable int expTillNextLvl becomes 10
 public int attackCd
+public int apples becomes 3
+public int gold becomes 500000
+public bool hasChemistryBook becomes false
+public bool breastplateEquipped becomes false ; +33% Hp
+public bool shinguardEquipped becomes false
+public bool helmetEquipped becomes false
+public bool ar15Equipped becomes false
+public bool hasTrophyCase becomes false
+public int enemiesKilled
+public int ar15Cd becomes 0
 
 pullable str sprite becomes "Player.bmp"
 
@@ -59,11 +68,19 @@ public func(int xp) addExp {
 	if (exp,>=,expTillNextLvl) {
 		exp becomes exp-expTillNextLvl
 		++level
-		if (level%5,=,0) { ++skillPoints }
 		if (level%10,=,0) { statPoints becomes statPoints+3 }
 		else { ++statPoints }
 		expTillNextLvl becomes (level*level)+10
 	}
 	
 	
+}
+
+public func consumeApple bool {
+	if (apples,=,0) { retn(false) }
+	apples becomes apples-1
+	if (hasChemistryBook) { currentHealth becomes currentHealth+((health/3)*2) }
+	else { currentHealth becomes currentHealth+health/3 }
+	if (currentHealth,>,health) { currentHealth becomes health }
+	retn(true)
 }

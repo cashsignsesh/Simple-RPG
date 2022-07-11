@@ -1,0 +1,415 @@
+import(Windows/Form)
+import(C:\Users\GDSPIOSJDGOSDHGJSDhg\Documents\GitHub\Simple-RPG\Player)
+import(Windows/RECT)
+import(Windows/CollisionEventArgs)
+import(C:\Users\GDSPIOSJDGOSDHGJSDhg\Documents\GitHub\Simple-RPG\ShopEntry)
+import(Windows/Line)
+import(Windows/SimpleLabel)
+import(C:\Users\GDSPIOSJDGOSDHGJSDhg\Documents\GitHub\Simple-RPG\Enemy)
+import(List<Enemy#>)
+import(Windows/SIZE)
+import(List<RECT>)
+import(C:\Users\GDSPIOSJDGOSDHGJSDhg\Documents\GitHub\Simple-RPG\Stage)
+import(List<Stage>)
+import(C:\Users\GDSPIOSJDGOSDHGJSDhg\Documents\GitHub\Simple-RPG\BattleFinishArgs)
+import(C:\Users\GDSPIOSJDGOSDHGJSDhg\Documents\GitHub\Simple-RPG\Battle)
+
+Player player
+Form form
+int cy
+List<RECT> challengeHitboxes becomes new(List<RECT>)
+List<Stage> challenges becomes new(List<Stage>)
+
+func(Enemy e) clone Enemy {
+	Enemy e0 becomes new(Enemy)
+	e0.maxHealth becomes e.maxHealth
+	e0.currentHealth becomes e0.maxHealth
+	e0.damage becomes e.damage
+	e0.speed becomes e.speed
+	e0.name becomes e.name
+	e0.spritePath becomes e.spritePath
+	e0.critRate becomes e.critRate
+	e0.critDmg becomes e.critDmg
+	e0.goldOnKill becomes e.goldOnKill
+	retn(e0)
+}
+
+Stage nerdStage becomes new(Stage)
+Stage footballStage becomes new(Stage)
+Stage alienStage becomes new(Stage)
+Stage prisonStage becomes new(Stage)
+Stage satanStage becomes new(Stage)
+
+func onDefeatNerds {
+
+	player.intellect becomes player.intellect+3
+	
+}
+
+func onDefeatFootballTeam {
+
+	player.gold becomes player.gold+500
+	
+}
+
+func onDefeatAliens {
+
+	player.gold becomes player.gold+3000
+	
+}
+
+func onDefeatPrisoners {
+
+	player.addExp(1000)
+	
+}
+func onDefeatSatan {
+
+	; GG
+	player.gold becomes 999999999
+	player.statPoints becomes 999999999
+	
+}
+
+Stage currentStage
+
+RECT exitBtn
+
+public FUNCPTR onExitFnc
+
+func wipe {
+	form.fncExecQueue.add($form.hitboxes.clear)
+	form.simpleLabels.clear
+	form.lines.clear
+	form.images.clear
+	form.rectangles.clear
+	form.rePaint
+}
+
+func(str name,str desc,Stage stage) addChallenge {
+	
+	SimpleLabel opponentLbl becomes new(SimpleLabel)
+	opponentLbl.text becomes name
+	opponentLbl.x becomes 1
+	opponentLbl.y becomes cy
+	form.addComponent(opponentLbl)
+	SimpleLabel opponentDescLbl becomes new(SimpleLabel)
+	opponentDescLbl.text becomes desc
+	opponentDescLbl.y becomes cy+15
+	opponentDescLbl.x becomes 1
+	form.addComponent(opponentDescLbl)
+	SIZE size becomes form.getStdTextSize(opponentDescLbl.text)
+	Line ln becomes new(Line)
+	ln.y becomes cy
+	ln.y0 becomes cy+50
+	Line ln0 becomes new(Line)
+	ln0.y becomes ln.y
+	ln0.y0 becomes ln0.y
+	ln0.x0 becomes size.cx+2
+	Line ln1 becomes new(Line)
+	ln1.x becomes ln0.x0
+	ln1.x0 becomes ln1.x
+	ln1.y becomes cy
+	ln1.y0 becomes ln.y0
+	Line ln2 becomes new(Line)
+	ln2.x0 becomes ln0.x0
+	ln2.y becomes ln.y0
+	ln2.y0 becomes ln2.y
+	form.lines.add(ln)
+	form.lines.add(ln0)
+	form.lines.add(ln1)
+	form.lines.add(ln2)
+	
+	challengeHitboxes.add(form.drawBtn(0,cy+32,"Fight"))
+	challenges.add(stage)
+	
+	SimpleLabel dfLbl becomes new(SimpleLabel)
+	if (stage.defeatedOnce) {
+		dfLbl.text becomes "(Defeated)"
+	}
+	else {
+		dfLbl.text becomes "(Undefeated)"
+	}
+	size becomes form.getStdTextSize(name)
+	dfLbl.x becomes size.cx+5
+	dfLbl.y becomes cy
+	form.addComponent(dfLbl)
+	
+	cy becomes cy+52
+	
+}
+
+public func show {
+	
+	Enemy nerd becomes new(Enemy)
+	nerd.maxHealth becomes 3
+	nerd.currentHealth becomes nerd.maxHealth
+	nerd.damage becomes 1
+	nerd.speed becomes 1
+	nerd.name becomes "Nerd"
+	nerd.spritePath becomes "Nerd.bmp"
+	nerd.critRate becomes 9
+	nerd.critDmg becomes 300
+	nerd.goldOnKill becomes 1
+	Enemy nerdBoss becomes new(Enemy)
+	nerdBoss.maxHealth becomes 15
+	nerdBoss.currentHealth becomes nerdBoss.maxHealth
+	nerdBoss.damage becomes 3
+	nerdBoss.speed becomes 1
+	nerdBoss.name becomes "Nerd boss"
+	nerdBoss.spritePath becomes "NerdBoss.bmp"
+	nerdBoss.critRate becomes 3
+	nerdBoss.critDmg becomes 350
+	nerdBoss.goldOnKill becomes 3
+
+	Enemy# nb becomes #,(clone(nerd),clone(nerd))
+	Enemy# nb0 becomes #,(clone(nerd),clone(nerd),clone(nerd))
+	Enemy# nb1 becomes #,(clone(nerd),clone(nerdBoss),clone(nerd))
+
+	List<Enemy#> nbs becomes new(List<Enemy#>)
+	nbs.add(nb)
+	nbs.add(nb0)
+	nbs.add(nb1)
+	
+	nerdStage.battles becomes nbs
+	nerdStage.onFirstWin becomes $onDefeatNerds
+
+	Enemy quarterback becomes new(Enemy)
+	quarterback.maxHealth becomes 30
+	quarterback.currentHealth becomes quarterback.maxHealth
+	quarterback.damage becomes 5
+	quarterback.speed becomes 1
+	quarterback.name becomes "Quarterback"
+	quarterback.spritePath becomes "Quarterback.bmp"
+	quarterback.critRate becomes 5
+	quarterback.critDmg becomes 33
+	quarterback.goldOnKill becomes 4
+	Enemy coach becomes new(Enemy)
+	coach.maxHealth becomes 3
+	coach.currentHealth becomes coach.maxHealth
+	coach.damage becomes 1
+	coach.speed becomes 2
+	coach.name becomes "Coach"
+	coach.spritePath becomes "Coach.bmp"
+	coach.critRate becomes 5
+	coach.critDmg becomes 10
+	coach.goldOnKill becomes 1
+	Enemy cheerleader becomes new(Enemy)
+	cheerleader.maxHealth becomes 8
+	cheerleader.currentHealth becomes cheerleader.maxHealth
+	cheerleader.damage becomes 3
+	cheerleader.speed becomes 4
+	cheerleader.name becomes "Cheerleader"
+	cheerleader.spritePath becomes "Cheerleader.bmp"
+	cheerleader.critRate becomes 5
+	cheerleader.critDmg becomes 50
+	cheerleader.goldOnKill becomes 3
+
+	Enemy# fb becomes #,(clone(quarterback),clone(coach))
+	Enemy# fb0 becomes #,(clone(cheerleader),clone(cheerleader),clone(cheerleader))
+	Enemy# fb1 becomes #,(clone(quarterback),clone(quarterback))
+
+	List<Enemy#> fbs becomes new(List<Enemy#>)
+	fbs.add(fb)
+	fbs.add(fb0)
+	fbs.add(fb1)
+	
+	footballStage.battles becomes fbs
+	footballStage.onFirstWin becomes $onDefeatFootballTeam
+	
+	; .. alien stage
+
+	Enemy alien becomes new(Enemy)
+	alien.maxHealth becomes 25
+	alien.currentHealth becomes alien.maxHealth
+	alien.damage becomes 7
+	alien.speed becomes 4
+	alien.name becomes "Alien"
+	alien.spritePath becomes "Alien.bmp"
+	alien.critRate becomes 5
+	alien.critDmg becomes 33
+	alien.goldOnKill becomes 3
+	Enemy ufo becomes new(Enemy)
+	ufo.maxHealth becomes 130
+	ufo.currentHealth becomes ufo.maxHealth
+	ufo.damage becomes 5
+	ufo.speed becomes 1
+	ufo.name becomes "UFO"
+	ufo.spritePath becomes "UFO.bmp"
+	ufo.critRate becomes 5
+	ufo.critDmg becomes 33
+	ufo.goldOnKill becomes 10
+
+	Enemy# ab becomes #,(clone(alien))
+	Enemy# ab0 becomes #,(clone(alien),clone(ufo),clone(alien),clone(ufo))
+
+	List<Enemy#> abs becomes new(List<Enemy#>)
+	abs.add(ab)
+	abs.add(ab0)
+	
+	alienStage.battles becomes abs
+	alienStage.onFirstWin becomes $onDefeatAliens
+	
+	; .. prison stage
+
+	Enemy thug becomes new(Enemy)
+	thug.maxHealth becomes 50
+	thug.currentHealth becomes thug.maxHealth
+	thug.damage becomes 7
+	thug.speed becomes 4
+	thug.name becomes "Inmate"
+	thug.spritePath becomes "Thug.bmp"
+	thug.critRate becomes 5
+	thug.critDmg becomes 33
+	thug.goldOnKill becomes 6
+	Enemy cop becomes new(Enemy)
+	cop.maxHealth becomes 150
+	cop.currentHealth becomes cop.maxHealth
+	cop.damage becomes 3
+	cop.speed becomes 1
+	cop.name becomes "C.O"
+	cop.spritePath becomes "Cop.bmp"
+	cop.critRate becomes 5
+	cop.critDmg becomes 33
+	cop.goldOnKill becomes 8
+
+	Enemy# pb becomes #,(clone(cop),clone(cop),clone(cop))
+	Enemy# pb0 becomes #,(clone(thug),clone(thug),clone(thug),clone(thug),clone(thug))
+	Enemy# pb1 becomes #,(clone(thug),clone(thug),clone(thug),clone(thug),clone(thug))
+
+	List<Enemy#> pbs becomes new(List<Enemy#>)
+	pbs.add(pb)
+	pbs.add(pb0)
+	pbs.add(pb1)
+	
+	prisonStage.battles becomes pbs
+	prisonStage.onFirstWin becomes $onDefeatPrisoners
+	
+	; .. Satan stage
+	
+	Enemy hellSpawn becomes new(Enemy)
+	hellSpawn.maxHealth becomes 200
+	hellSpawn.currentHealth becomes hellSpawn.maxHealth
+	hellSpawn.damage becomes 14
+	hellSpawn.speed becomes 6
+	hellSpawn.name becomes "Hell spawn"
+	hellSpawn.spritePath becomes "hellspawn.bmp"
+	hellSpawn.critRate becomes 5
+	hellSpawn.critDmg becomes 33
+	hellSpawn.goldOnKill becomes 50
+	Enemy satan becomes new(Enemy)
+	satan.maxHealth becomes 1000
+	satan.currentHealth becomes satan.maxHealth
+	satan.damage becomes 30
+	satan.speed becomes 1
+	satan.name becomes "Satan"
+	satan.spritePath becomes "satan.bmp"
+	satan.critRate becomes 3
+	satan.critDmg becomes 150
+	satan.goldOnKill becomes 200
+
+	Enemy# hb becomes #,(clone(hellSpawn),clone(satan),clone(hellSpawn))
+
+	List<Enemy#> hbs becomes new(List<Enemy#>)
+	hbs.add(hb)
+	
+	satanStage.battles becomes hbs
+	satanStage.onFirstWin becomes $onDefeatSatan
+	
+	; ..
+	
+	SimpleLabel arenaIdLbl becomes new(SimpleLabel)
+	arenaIdLbl.text becomes "Arena"
+	form.addComponent(arenaIdLbl)
+	cy becomes 20
+	addChallenge("Nerds","Weak physically (low stats). Defeat them to eat their brains (gain 3 intellect)",nerdStage)
+	addChallenge("Football team","High stat variety. Defeat them for 500 gold.",footballStage)
+	addChallenge("Aliens","N/A. Defeat them for ??? gold.",alienStage)
+	addChallenge("Prison","Pick a fight with prison inmates. Defeat them to gain a bonus of 1000 EXP.",prisonStage)
+	addChallenge("Satan","Defeat Satan and his hellspawns to escape this hell.",satanStage)
+	exitBtn becomes form.drawBtn(262,350,"Exit")
+	form.rePaint
+	
+}
+
+func hide {
+	form.fillRectangles.clear
+	if (onExitFnc,=/=,0) {
+		callptr(onExitFnc)
+	}
+}
+
+func(BattleFinishArgs args) battleEnded {
+	
+	if (currentStage,=/=,0) {
+		
+		player.addExp(args.expGained)
+		player.gold becomes player.gold+args.goldGained
+		
+		if (!args.playerWon) {
+			form.fncExecQueue.add($hide)
+			player.ar15Cd becomes 0
+			currentStage becomes null
+			retn
+		}
+		else {
+			currentStage.currentBattleIndex becomes currentStage.currentBattleIndex+1
+			if (currentStage.currentBattleIndex,=,lengthof(currentStage.battles.toArray)) {
+				if (!currentStage.defeatedOnce) {
+					callptr(currentStage.onFirstWin)
+					currentStage.defeatedOnce becomes true
+					currentStage becomes null
+				}
+				form.fncExecQueue.add($hide)
+				player.currentHealth becomes player.health
+				retn
+			}
+			int index becomes currentStage.currentBattleIndex
+			Battle battle becomes new(Battle,currentStage.battles.get(index),player,form)
+			battle.onBattleEnd.addFunction($battleEnded)
+			wipe form.fncExecQueue.add($battle.show)
+		}
+	}
+	
+}
+
+func(CollisionEventArgs e) btnPress {
+	
+	; if exitbtn...
+	; exit..
+	; retn..
+	if (e.hitbox,=,exitBtn) {
+		form.fncExecQueue.add($hide)
+		retn
+	}
+	
+	int index becomes 0
+	
+	foreach (hb,challengeHitboxes.toArray) {
+		
+		if (hb,=,e.hitbox) {
+			
+			; Start arena challenge at
+			; challenges[index]
+			; where challenges[index] is a stage
+			; and in each stage is an array of enemies that can be displayed in battle
+			currentStage becomes challenges.get(index)
+			currentStage.currentBattleIndex becomes 0
+			Battle battle becomes new(Battle,currentStage.battles.get(0),player,form)
+			battle.onBattleEnd.addFunction($battleEnded)
+			wipe form.fncExecQueue.add($battle.show)
+			break
+			
+		}
+		
+		++index
+		
+	}
+	
+}
+
+constructor (Form refForm,Player refPlayer) {
+	form becomes refForm
+	player becomes refPlayer
+	form.onHitboxLmbDown.addFunction($btnPress)
+}

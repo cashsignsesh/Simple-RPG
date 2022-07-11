@@ -30,6 +30,11 @@ private int expGained
 private int enemiesKilled
 pullable Event<int> onBattleEnd becomes new(Event<int>)
 private bool playerWon
+private SimpleLabel applesLbl becomes new(SimpleLabel)
+private RECT applesHb becomes new(RECT)
+private int goldGained
+private RECT ar15Hb becomes new(RECT)
+private SimpleLabel arLbl becomes new(SimpleLabel)
 
 private func fillWhiteboxes {
 
@@ -135,6 +140,30 @@ public func show {
 		onCd becomes true
 		attackCdLoadingBar.right becomes attackCdLoadingBar.left+10*attackCdTenPercentEquivalent/player.attackCd
 	}
+	ImageReference applesRef becomes new(ImageReference)
+	applesRef.x becomes 150
+	applesRef.y becomes border.y+5
+	applesRef.fileName becomes "apple.bmp"
+	form.images.add(applesRef)
+	applesLbl.text becomes "Apples (x.....)"
+	wsprintfA(applesLbl.text,"Apples (x%d)",player.apples,null)
+	applesLbl.x becomes applesRef.x+34
+	applesLbl.y becomes applesRef.y
+	form.addComponent(applesLbl)
+	applesHb becomes form.drawBtn(applesLbl.x,applesLbl.y+16,"Consume")
+	if (player.ar15Equipped) {
+		ImageReference arRef becomes new(ImageReference)
+		arRef.x becomes 118
+		arRef.y becomes applesRef.y+48
+		arRef.fileName becomes "ar.bmp"
+		form.images.add(arRef)
+		arLbl.text becomes "AR-15 (Ready)"
+		if (player.ar15Cd,=/=,0) { wsprintfA(arLbl.text,"AR-15 (%ds)",player.ar15Cd/40,null) }
+		arLbl.x becomes arRef.x+66
+		arLbl.y becomes arRef.y
+		form.addComponent(arLbl)
+		ar15Hb becomes form.drawBtn(arLbl.x,arLbl.y+16,"Shoot")
+	}
 	form.rePaint
 }
 
@@ -145,6 +174,7 @@ private func finishBattle {
 	BattleFinishArgs args becomes new(BattleFinishArgs)
 	args.expGained becomes expGained
 	args.playerWon becomes playerWon
+	args.goldGained becomes goldGained
 	onBattleEnd.raise(args)
 }
 
@@ -160,6 +190,7 @@ private func(Enemy e) attackPlayer {
 		e.hitRotation becomes 1
 	}
 	else { e.hitRotation becomes e.hitRotation+1 }
+	if (player.helmetEquipped) { dmg becomes dmg-1 }
 	
 	player.currentHealth becomes player.currentHealth-dmg
 	if (player.currentHealth,<=,0) {
@@ -167,6 +198,7 @@ private func(Enemy e) attackPlayer {
 		player.attackCd becomes 0
 		form.fncExecQueue.add($form.onTimerTick.clearFunctions)
 		form.fncExecQueue.add($form.fillRectangles.clear)
+		player.currentHealth becomes player.health
 		playerWon becomes false
 		form.fncExecQueue.add($finishBattle)
 	}
@@ -187,6 +219,18 @@ private func(TimerEventArgs args) onTick {
 		}
 		e.attackCd becomes e.attackCd-1
 	}
+	if (player.ar15Cd,=/=,0) {
+		player.ar15Cd becomes player.ar15Cd-1
+		if (player.ar15Cd,=,0) {
+			arLbl.text becomes "AR-15 (Ready)"
+		}
+		else {
+			if (player.ar15Cd%40,=,0) {
+				wsprintfA(arLbl.text,"AR-15 (%ds)",player.ar15Cd/40,null)
+				form.rePaint
+			}
+		}
+	}
 	
 	; Player fighting...
 	if (player.attackCd,=,0) { retn }
@@ -200,18 +244,9 @@ private func(TimerEventArgs args) onTick {
 		attackCdLoadingBar.right becomes attackCdLoadingBar.right+10
 		form.rePaint
 	}
-	
 }
 
-private func(Enemy enemy,RECT enemyRect) attackEnemy {
-	
-	;TODO attack cooldown (based on player.speed)
-	int dmg becomes player.damage
-	if (player.hitRotation,=,player.critRate) {
-		dmg becomes (dmg*(100+player.critDmg))/100
-		player.hitRotation becomes 1
-	}
-	else { player.hitRotation becomes player.hitRotation+1 }
+private func(Enemy enemy,int dmg,RECT enemyRect) dmgEnemy {
 	enemy.currentHealth becomes enemy.currentHealth-dmg
 	foreach (tpl,enemyLbls.toArray) {
 		
@@ -223,9 +258,16 @@ private func(Enemy enemy,RECT enemyRect) attackEnemy {
 				form.images.remove(index)
 				lastIndex becomes form.hitboxes.indexOf(enemyRect)
 				form.fncExecQueue.add($removeLastBox)
-				expGained becomes expGained+((enemy.maxHealth/5)+enemy.damage+enemy.speed)
+				expGained becomes expGained+((enemy.maxHealth/5)+enemy.damage+enemy.speed)+enemy.bonusXp
+				goldGained becomes goldGained+enemy.goldOnKill
 				++enemiesKilled
 				tpl.item2.dead becomes true
+				player.enemiesKilled becomes player.enemiesKilled+1
+				if (player.hasTrophyCase) {
+					if (player.enemiesKilled%10,=,0) {
+						player.damage becomes player.damage+1
+					}
+				}
 				if (enemiesKilled,=,lengthof(enemies)) {
 					; Finish battle...
 					; Keep in mind at this point removeLastBox is in the fncExecQueue
@@ -242,6 +284,18 @@ private func(Enemy enemy,RECT enemyRect) attackEnemy {
 		}
 		
 	}
+}
+
+private func(Enemy enemy,RECT enemyRect) attackEnemy {
+	
+	;TODO attack cooldown (based on player.speed)
+	int dmg becomes player.damage
+	if (player.hitRotation,=,player.critRate) {
+		dmg becomes (dmg*(100+player.critDmg))/100
+		player.hitRotation becomes 1
+	}
+	else { player.hitRotation becomes player.hitRotation+1 }
+	dmgEnemy(enemy,dmg,enemyRect)
 	onCd becomes true
 	fillWhiteboxes
 	player.attackCd becomes attackCdMax
@@ -252,6 +306,25 @@ private func(Enemy enemy,RECT enemyRect) attackEnemy {
 
 private func(CollisionEventArgs args) onClick {
 	
+	if (args.hitbox,=,applesHb) {
+		if (player.consumeApple) {
+			wsprintfA(applesLbl.text,"Apples (x%d)",player.apples,null)
+			wsprintfA(healthLbl.text,"HP: %d/%d",player.currentHealth,player.health)
+			form.rePaint
+		}
+		retn
+	}
+	if (args.hitbox,=,ar15Hb) {
+		if (player.ar15Cd,=,0) {
+			foreach (tpl,enemyBtns.toArray) {
+				dmgEnemy(tpl.item2,20,tpl.item1)
+			}
+			player.ar15Cd becomes 400
+			wsprintfA(arLbl.text,"AR-15 (%ds)",player.ar15Cd/40,null)
+			form.rePaint
+		}
+		retn
+	}
 	if (onCd) { retn }
 	
 	foreach (tpl,enemyBtns.toArray) {

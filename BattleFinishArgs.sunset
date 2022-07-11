@@ -1,4 +1,4 @@
 STRUCT
 public bool playerWon
 public int expGained
-; public Item# loot
+public int goldGained

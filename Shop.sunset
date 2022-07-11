@@ -1,0 +1,157 @@
+
+; Be able to purchase and sell (with/for gold)
+
+; - Helmets
+; - Shinguards
+; - Shoes
+; - Brestplates
+; - Apples
+; - Magic beans (that immediately increase EXP progress to next level by 20%)
+; - 4 Leaf Clover (increases crit chance)
+; - And several other unique items
+
+import(Windows/Form)
+import(C:\Users\GDSPIOSJDGOSDHGJSDhg\Documents\GitHub\Simple-RPG\Player)
+import(Windows/RECT)
+import(Windows/CollisionEventArgs)
+import(C:\Users\GDSPIOSJDGOSDHGJSDhg\Documents\GitHub\Simple-RPG\ShopEntry)
+import(Windows/Line)
+import(Windows/SimpleLabel)
+import(Windows/SIZE)
+import(Windows/RECTF)
+
+dllref(User32,str,str,int) cdecl:wsprintfA int
+
+public FUNCPTR onExitFnc ; No expected params
+
+private Form form
+private Player player
+private RECT exitBtn
+private SimpleLabel goldLbl
+private ShopEntry# entries
+
+; Spells (for mage), all 1 time use per combat
+; Blessing - Increase stats besides health by 20% for 10 seconds (5 intellect, 50g)
+; Blindness - Stop enemies from attacking for 5 seconds (10 intellect, 100g)
+; Crucify - Next attack will deal 100% bonus damage (20 intellect, 25g) b
+; Rebirth - Regain all lost health (25 intellect, 150g)
+
+constant int h becomes 19
+
+public func show {
+	
+	exitBtn becomes form.drawBtn(262,350,"Exit")
+	int y becomes 0
+	int longestCx
+	foreach (en,entries) {
+		SIZE size becomes form.getStdTextSize(en.name)
+		if (size.cx,>,longestCx) { longestCx becomes size.cx }
+	}
+	foreach (en,entries) {
+		Line ln becomes new(Line)
+		ln.y becomes y
+		ln.y0 becomes y
+		ln.x0 becomes form.w-7
+		Line ln0 becomes new(Line)
+		ln0.y becomes y
+		ln0.y0 becomes y+h
+		Line ln1 becomes new(Line)
+		ln1.y becomes ln0.y0
+		ln1.y0 becomes ln1.y
+		ln1.x0 becomes ln.x0
+		Line ln2 becomes new(Line)
+		ln2.y becomes y
+		ln2.y0 becomes ln0.y0
+		ln2.x becomes ln.x0
+		ln2.x0 becomes ln.x0
+		form.lines.add(ln)
+		form.lines.add(ln0)
+		form.lines.add(ln1)
+		form.lines.add(ln2)
+		SimpleLabel lbl becomes new(SimpleLabel)
+		lbl.text becomes en.name
+		lbl.x becomes 2
+		lbl.y becomes y+1
+		form.addComponent(lbl)
+		Line ln3 becomes new(Line)
+		ln3.x becomes lbl.x+2+longestCx
+		ln3.x0 becomes ln3.x
+		ln3.y becomes y
+		ln3.y0 becomes y+h
+		form.lines.add(ln3)
+		SimpleLabel lbl0 becomes new(SimpleLabel)
+		lbl0.text becomes en.description
+		lbl0.x becomes ln3.x0+2
+		lbl0.y becomes lbl.y
+		form.addComponent(lbl0)
+		; move entries to RpgForm and pass them in to here via constructor
+		; add ShopEntry#disablePurchase and set it to true in the ShopEntry#onPurchase functions
+		; say 
+		; if en.disablePurchase
+		;  y becomes y=h
+		;  continue
+		if (en.purchaseDisabled) {
+			y becomes y+h
+			continue
+		}
+		en.purchaseBtnHb becomes form.drawBtn(form.w-70,y,"Purchase")
+		y becomes y+h
+	}
+	goldLbl becomes new(SimpleLabel)
+	goldLbl.text becomes "Your Gold: ............g"
+	wsprintfA(goldLbl.text,"Your Gold: %dg",player.gold)
+	goldLbl.y becomes 355
+	form.addComponent(goldLbl)
+	form.rePaint
+	
+}
+
+private func hide {
+	form.fillRectangles.clear
+	if (onExitFnc,=/=,0) {
+		callptr(onExitFnc) 
+	}
+}
+
+private func(CollisionEventArgs args) btnPress {
+	
+	RECT hb becomes args.hitbox
+	
+	if (hb,=,exitBtn) {
+		form.fncExecQueue.add($hide)
+		retn
+	}
+	
+	foreach (en,entries) {
+		if (en.purchaseDisabled) {
+			continue
+		}
+		if (hb,=,en.purchaseBtnHb) {
+			if (player.gold,>=,en.cost) {
+				if (player.intellect,<,en.intellectRequirement) { break }
+				player.gold becomes player.gold-en.cost
+				callptr(en.onPurchase)
+				wsprintfA(goldLbl.text,"Your Gold: %dg",player.gold)
+				if (en.oneTimePurchase) {
+					en.purchaseDisabled becomes true
+					RECTF whiteBox becomes new(RECTF)
+					whiteBox.left becomes en.purchaseBtnHb.left
+					whiteBox.right becomes en.purchaseBtnHb.right+1
+					whiteBox.bottom becomes en.purchaseBtnHb.bottom+1
+					whiteBox.top becomes en.purchaseBtnHb.top
+					form.fillRectangles.add(whiteBox)
+				}
+				form.rePaint
+			}
+			break
+		}
+	}
+	
+}
+
+constructor (Form refForm,Player refPlayer,ShopEntry# ens) {
+	form becomes refForm
+	player becomes refPlayer
+	entries becomes ens
+	form.onHitboxLmbDown.addFunction($btnPress)
+}

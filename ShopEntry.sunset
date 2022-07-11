@@ -1,0 +1,10 @@
+STRUCT
+import(Windows/RECT)
+public int cost
+public FUNCPTR onPurchase ; No expected parameters
+public str name
+public str description
+public RECT purchaseBtnHb
+public int intellectRequirement
+public bool oneTimePurchase becomes false
+public bool purchaseDisabled becomes false

@@ -1,4 +1,3 @@
-import(C:\Users\GDSPIOSJDGOSDHGJSDhg\Documents\GitHub\Simple-RPG\Item)
 import(ImageReference)
 STRUCT
 public int maxHealth
@@ -11,11 +10,11 @@ public int abilityCooldownMs
 public str spritePath
 public str name
 public FUNCPTR abilityFnc ; 1 expected argument (Player player)
-public Item dropItem
-public int dropItemChance ; as a %
+public int goldOnKill
 public int hitRotation becomes 1
 public ImageReference img
 public int attackCd becomes 20
 public int attackCdMax
 public int animationTicks
 public bool dead becomes false
+public int bonusXp

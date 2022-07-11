@@ -1,0 +1,8 @@
+import(C:\Users\GDSPIOSJDGOSDHGJSDhg\Documents\GitHub\Simple-RPG\Enemy)
+import(List<Enemy#>)
+STRUCT
+
+public List<Enemy#> battles
+public FUNCPTR onFirstWin ; No expected parameters
+public bool defeatedOnce becomes false
+public int currentBattleIndex
