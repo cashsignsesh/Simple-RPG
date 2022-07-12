@@ -120,7 +120,9 @@ func purchaseAR15 {
 func purchaseTrophyCase {
 	player.hasTrophyCase becomes true
 }
-private ShopEntry# entries becomes #10
+func purchaseBlessing { }
+func purchaseBlindness { }
+private ShopEntry# entries becomes #14
 ShopEntry entry becomes new(ShopEntry)
 entry.name becomes "Apple"
 entry.cost becomes 50
@@ -199,6 +201,22 @@ entry8.description becomes "Permanently gain 1 dmg for every 10 enemies killed. 
 entry8.onPurchase becomes $purchaseTrophyCase
 entry8.oneTimePurchase becomes true
 entries[9] becomes entry8
+ShopEntry entry9 becomes new(ShopEntry)
+entry9.name becomes "Blessing (Mage only)"
+entry9.cost becomes 50
+entry9.description becomes "Increase stats but health by 20% for 10s. 5+ intellect, 50g"
+entry9.onPurchase becomes $purchaseBlessing
+entry9.oneTimePurchase becomes true
+entry9.intellectRequirement becomes 5
+entries[10] becomes entry9
+ShopEntry entry10 becomes new(ShopEntry)
+entry10.name becomes "Blindness (Mage only)"
+entry10.cost becomes 100
+entry10.description becomes "Stop enemies for attacking for 5 seconds. 10+ intellect. Cost 100g"
+entry10.onPurchase becomes $purchaseBlindness
+entry10.oneTimePurchase becomes true
+entry10.intellectRequirement becomes 10
+entries[11] becomes entry10
 Shop shop becomes new(Shop,form,player,entries)
 
 Arena arena becomes new(Arena,form,player)
