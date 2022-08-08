@@ -1,5 +1,5 @@
-import(C:\Users\GDSPIOSJDGOSDHGJSDhg\Documents\GitHub\Simple-RPG\Enemy)
-import(C:\Users\GDSPIOSJDGOSDHGJSDhg\Documents\GitHub\Simple-RPG\Player)
+import(Simple-RPG\Enemy)
+import(Simple-RPG\Player)
 import(ImageReference)
 import(Windows/Form)
 import(Windows/Line)
@@ -13,7 +13,7 @@ import(List<Tuple<SimpleLabel,Enemy>>)
 import(Windows/RECTF)
 import(Windows/TimerEventArgs)
 import(Event<int>)
-import(C:\Users\GDSPIOSJDGOSDHGJSDhg\Documents\GitHub\Simple-RPG\BattleFinishArgs)
+import(Simple-RPG\BattleFinishArgs)
 dllref(User32,str,str,int,int) cdecl:wsprintfA int
 public Enemy# enemies ; allow up to 3 ? or ignore rest after 3
 public Player player

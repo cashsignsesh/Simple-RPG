@@ -7,14 +7,14 @@ import(Windows/Line)
 import(Windows/MouseEventArgs)
 import(Windows/CollisionEventArgs)
 import(ImageReference)
-import(C:\Users\GDSPIOSJDGOSDHGJSDhg\Documents\GitHub\Simple-RPG\Enemy)
-import(C:\Users\GDSPIOSJDGOSDHGJSDhg\Documents\GitHub\Simple-RPG\Player)
-import(C:\Users\GDSPIOSJDGOSDHGJSDhg\Documents\GitHub\Simple-RPG\Battle)
-import(C:\Users\GDSPIOSJDGOSDHGJSDhg\Documents\GitHub\Simple-RPG\BattleFinishArgs)
+import(Simple-RPG\Enemy)
+import(Simple-RPG\Player)
+import(Simple-RPG\Battle)
+import(Simple-RPG\BattleFinishArgs)
 import(Random)
-import(C:\Users\GDSPIOSJDGOSDHGJSDhg\Documents\GitHub\Simple-RPG\Shop)
-import(C:\Users\GDSPIOSJDGOSDHGJSDhg\Documents\GitHub\Simple-RPG\ShopEntry)
-import(C:\Users\GDSPIOSJDGOSDHGJSDhg\Documents\GitHub\Simple-RPG\Arena)
+import(Simple-RPG\Shop)
+import(Simple-RPG\ShopEntry)
+import(Simple-RPG\Arena)
 
 dllref(User32,str,str,int) cdecl:wsprintfA int
 
@@ -121,8 +121,10 @@ func purchaseAR15 {
 func purchaseTrophyCase {
 	player.hasTrophyCase becomes true
 }
-func purchaseBlessing { }
-func purchaseBlindness { }
+func purchaseBlessing { player.hasBlessing becomes true }
+func purchaseBlindness { player.hasBlindness becomes true }
+func purchaseCrucify { player.hasCrucify becomes true }
+func purchaseRebirth { player.hasRebirth becomes true }
 private ShopEntry# entries becomes #14
 ShopEntry entry becomes new(ShopEntry)
 entry.name becomes "Apple"
@@ -203,21 +205,41 @@ entry8.onPurchase becomes $purchaseTrophyCase
 entry8.oneTimePurchase becomes true
 entries[9] becomes entry8
 ShopEntry entry9 becomes new(ShopEntry)
-entry9.name becomes "Blessing (Mage only)"
+entry9.name becomes "Blessing (Mage)"
 entry9.cost becomes 50
-entry9.description becomes "Increase stats but health by 20% for 10s. 5+ intellect, 50g"
+entry9.description becomes "Increase stats but health by 50% for 10s. 5+ intellect, 50g"
 entry9.onPurchase becomes $purchaseBlessing
 entry9.oneTimePurchase becomes true
+entry9.isSpell becomes true
 entry9.intellectRequirement becomes 5
 entries[10] becomes entry9
 ShopEntry entry10 becomes new(ShopEntry)
-entry10.name becomes "Blindness (Mage only)"
+entry10.name becomes "Blindness (Mage)"
 entry10.cost becomes 100
-entry10.description becomes "Stop enemies for attacking for 5 seconds. 10+ intellect. Cost 100g"
+entry10.description becomes "Stop enemies for attacking for 8s. 10+ intellect. Cost 100g"
 entry10.onPurchase becomes $purchaseBlindness
 entry10.oneTimePurchase becomes true
 entry10.intellectRequirement becomes 10
+entry10.isSpell becomes true
 entries[11] becomes entry10
+ShopEntry entry11 becomes new(ShopEntry)
+entry11.name becomes "Crucify (Mage)"
+entry11.cost becomes 25
+entry11.description becomes "Next attack will deal 300% dmg. 15+ intellect. Cost 25g"
+entry11.onPurchase becomes $purchaseCrucify
+entry11.oneTimePurchase becomes true
+entry11.intellectRequirement becomes 15
+entry11.isSpell becomes true
+entries[12] becomes entry11
+ShopEntry entry12 becomes new(ShopEntry)
+entry12.name becomes "Rebirth (Mage)"
+entry12.cost becomes 25
+entry12.description becomes "Restore all health. 20+ intellect. Cost 150g"
+entry12.onPurchase becomes $purchaseRebirth
+entry12.oneTimePurchase becomes true
+entry12.intellectRequirement becomes 20
+entry12.isSpell becomes true
+entries[13] becomes entry12
 Shop shop becomes new(Shop,form,player,entries)
 
 Arena arena becomes new(Arena,form,player)
@@ -763,6 +785,7 @@ func(CollisionEventArgs args) btnClick {
 				selecting becomes false
 				switch (rect) {
 					case(shopBtn):
+						; ... go to shop
 						wipe form.fncExecQueue.add($shop.show)
 						break
 					case(arenaBtn):

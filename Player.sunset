@@ -30,6 +30,10 @@ public bool ar15Equipped becomes false
 public bool hasTrophyCase becomes false
 public int enemiesKilled
 public int ar15Cd becomes 0
+public bool hasBlessing becomes false
+public bool hasBlindness becomes false
+public bool hasCrucify becomes false
+public bool hasRebirth becomes false
 
 pullable str sprite becomes "Player.bmp"
 

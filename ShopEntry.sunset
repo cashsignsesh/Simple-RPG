@@ -8,3 +8,4 @@ public RECT purchaseBtnHb
 public int intellectRequirement
 public bool oneTimePurchase becomes false
 public bool purchaseDisabled becomes false
+public bool isSpell becomes false

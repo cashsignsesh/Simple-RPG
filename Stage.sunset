@@ -1,4 +1,4 @@
-import(C:\Users\GDSPIOSJDGOSDHGJSDhg\Documents\GitHub\Simple-RPG\Enemy)
+import(Simple-RPG\Enemy)
 import(List<Enemy#>)
 STRUCT
 

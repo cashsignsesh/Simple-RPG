@@ -11,10 +11,10 @@
 ; - And several other unique items
 
 import(Windows/Form)
-import(C:\Users\GDSPIOSJDGOSDHGJSDhg\Documents\GitHub\Simple-RPG\Player)
+import(Simple-RPG\Player)
 import(Windows/RECT)
 import(Windows/CollisionEventArgs)
-import(C:\Users\GDSPIOSJDGOSDHGJSDhg\Documents\GitHub\Simple-RPG\ShopEntry)
+import(Simple-RPG\ShopEntry)
 import(Windows/Line)
 import(Windows/SimpleLabel)
 import(Windows/SIZE)
@@ -31,10 +31,10 @@ private SimpleLabel goldLbl
 private ShopEntry# entries
 
 ; Spells (for mage), all 1 time use per combat
-; Blessing - Increase stats besides health by 20% for 10 seconds (5 intellect, 50g)
-; Blindness - Stop enemies from attacking for 5 seconds (10 intellect, 100g)
-; Crucify - Next attack will deal 100% bonus damage (20 intellect, 25g) b
-; Rebirth - Regain all lost health (25 intellect, 150g)
+; Blessing - Increase stats besides health by 50% for 10 seconds (5 intellect, 50g)
+; Blindness - Stop enemies from attacking for 8 seconds (10 intellect, 100g)
+; Crucify - Next attack will deal 200% bonus damage (15 intellect, 25g)
+; Rebirth - Regain all lost health (20 intellect, 150g)
 
 constant int h becomes 19
 
