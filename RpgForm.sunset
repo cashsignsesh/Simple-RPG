@@ -20,6 +20,7 @@ dllref(User32,str,str,int) cdecl:wsprintfA int
 
 ;TODO
 ; - spells
+; - cleanup repo and try to get Sunset syntax recogized on github... remember to update yt channel description links
 
 ;Next project
 ; - New components for Form.sunset like progress bar
