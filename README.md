@@ -2,28 +2,28 @@
  Game to test features of my comprehensive ground-up proramming language (Sunset) <br />
  Written in Sunset <br />
  
- ![Satan fight](https://github.com/cashsignsesh/Simple-RPG/blob/master/bin/Screenshots/Capture0.PNG)
+ ![Satan fight](https://github.com/cashsignsesh/Simple-RPG/blob/main/bin/Screenshots/Capture0.PNG)
 
  <br />
  
- ![Endless round 1 fight](https://github.com/cashsignsesh/Simple-RPG/blob/master/bin/Screenshots/Capture4.PNG)
+ ![Endless round 1 fight](https://github.com/cashsignsesh/Simple-RPG/blob/main/bin/Screenshots/Capture4.PNG)
  
  <br />
  
- ![Class selection](https://github.com/cashsignsesh/Simple-RPG/blob/master/bin/Screenshots/Capture3.PNG)
+ ![Class selection](https://github.com/cashsignsesh/Simple-RPG/blob/main/bin/Screenshots/Capture3.PNG)
  
  <br />
  
- ![Shop/Arena/Endless selection](https://github.com/cashsignsesh/Simple-RPG/blob/master/bin/Screenshots/Capture2.PNG)
+ ![Shop/Arena/Endless selection](https://github.com/cashsignsesh/Simple-RPG/blob/main/bin/Screenshots/Capture2.PNG)
  
  <br />
  
- ![Skill tree](https://github.com/cashsignsesh/Simple-RPG/blob/master/bin/Screenshots/Capture1.PNG)
+ ![Skill tree](https://github.com/cashsignsesh/Simple-RPG/blob/main/bin/Screenshots/Capture1.PNG)
 
  <br />
  
- ![Shop](https://github.com/cashsignsesh/Simple-RPG/blob/master/bin/Screenshots/Capture.PNG)
+ ![Shop](https://github.com/cashsignsesh/Simple-RPG/blob/main/bin/Screenshots/Capture.PNG)
  
  <br />
  
- ![Source open in EmEditor](https://github.com/cashsignsesh/Simple-RPG/blob/master/bin/Screenshots/Capture5.PNG)
+ ![Source open in EmEditor](https://github.com/cashsignsesh/Simple-RPG/blob/main/bin/Screenshots/Capture5.PNG)
