@@ -1,5 +1,5 @@
 STRUCT
-import(Windows/RECT)
+import(Windows/Drawing/RECT)
 public int cost
 public FUNCPTR onPurchase ; No expected parameters
 public str name

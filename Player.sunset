@@ -7,7 +7,7 @@ public constant Class Warrior becomes 3
 
 public Class class
 public int level becomes 1
-public int statPoints becomes 30 ; Increase this by 3 for level's every multiple of 10. For every multiple of 1, increase by 1.
+public int statPoints becomes 3 ; Increase this by 3 for level's every multiple of 10. For every multiple of 1, increase by 1.
 
 public int damage becomes 1
 public int speed becomes 1
@@ -21,7 +21,7 @@ pullable int exp
 pullable int expTillNextLvl becomes 10
 public int attackCd
 public int apples becomes 3
-public int gold becomes 500000
+public int gold becomes 50
 public bool hasChemistryBook becomes false
 public bool breastplateEquipped becomes false ; +33% Hp
 public bool shinguardEquipped becomes false
@@ -36,6 +36,20 @@ public bool hasCrucify becomes false
 public bool hasRebirth becomes false
 
 pullable str sprite becomes "Player.bmp"
+
+public int blessingUses becomes 2
+public int blindnessUses becomes 2
+public int crucifyUses becomes 3
+public int rebirthUses becomes 1
+
+public int ticksUntilBlessingEnd becomes 0 ; max: 400
+public int blsDmgInc
+public int blsSpdInc
+public int blsCrtInc
+
+public int ticksUntilBlindnessEnd becomes 0 ; max: 320
+
+public bool nextHitIsCrucify
 
 public func getClassStr str {
 	
@@ -74,7 +88,7 @@ public func(int xp) addExp {
 		++level
 		if (level%10,=,0) { statPoints becomes statPoints+3 }
 		else { ++statPoints }
-		expTillNextLvl becomes (level*level)+10
+		expTillNextLvl becomes ((level*level)/9)+10
 	}
 	
 	
@@ -87,4 +101,16 @@ public func consumeApple bool {
 	else { currentHealth becomes currentHealth+health/3 }
 	if (currentHealth,>,health) { currentHealth becomes health }
 	retn(true)
+}
+
+public func isMage bool {
+	if (class,=,Mage) { retn(true) }
+	retn(false)
+}
+
+public func refreshSpellUses {
+	blessingUses becomes 2
+	blindnessUses becomes 2
+	crucifyUses becomes 3
+	rebirthUses becomes 1
 }

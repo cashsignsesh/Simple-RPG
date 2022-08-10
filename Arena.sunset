@@ -1,13 +1,13 @@
 import(Windows/Form)
 import(Simple-RPG\Player)
-import(Windows/RECT)
+import(Windows/Drawing/RECT)
 import(Windows/CollisionEventArgs)
 import(Simple-RPG\ShopEntry)
-import(Windows/Line)
-import(Windows/SimpleLabel)
+import(Windows/Drawing/Line)
+import(Windows/Drawing/SimpleLabel)
 import(Simple-RPG\Enemy)
 import(List<Enemy#>)
-import(Windows/SIZE)
+import(Windows/Drawing/SIZE)
 import(List<RECT>)
 import(Simple-RPG\Stage)
 import(List<Stage>)
@@ -27,7 +27,7 @@ func(Enemy e) clone Enemy {
 	e0.damage becomes e.damage
 	e0.speed becomes e.speed
 	e0.name becomes e.name
-	e0.spritePath becomes e.spritePath
+	e0.spriteId becomes e.spriteId
 	e0.critRate becomes e.critRate
 	e0.critDmg becomes e.critDmg
 	e0.goldOnKill becomes e.goldOnKill
@@ -139,6 +139,11 @@ func(str name,str desc,Stage stage) addChallenge {
 	
 }
 
+private func(Enemy e) fixSpeed {
+	if (player.shinguardEquipped) { e.speed becomes e.speed-10 }
+	if (e.speed,<=,0) { e.speed becomes 1 }
+}
+
 public func show {
 	
 	Enemy nerd becomes new(Enemy)
@@ -147,7 +152,7 @@ public func show {
 	nerd.damage becomes 1
 	nerd.speed becomes 1
 	nerd.name becomes "Nerd"
-	nerd.spritePath becomes "Nerd.bmp"
+	nerd.spriteId becomes 10
 	nerd.critRate becomes 9
 	nerd.critDmg becomes 300
 	nerd.goldOnKill becomes 1
@@ -157,7 +162,7 @@ public func show {
 	nerdBoss.damage becomes 3
 	nerdBoss.speed becomes 1
 	nerdBoss.name becomes "Nerd boss"
-	nerdBoss.spritePath becomes "NerdBoss.bmp"
+	nerdBoss.spriteId becomes 11
 	nerdBoss.critRate becomes 3
 	nerdBoss.critDmg becomes 350
 	nerdBoss.goldOnKill becomes 3
@@ -180,7 +185,7 @@ public func show {
 	quarterback.damage becomes 5
 	quarterback.speed becomes 1
 	quarterback.name becomes "Quarterback"
-	quarterback.spritePath becomes "Quarterback.bmp"
+	quarterback.spriteId becomes 12
 	quarterback.critRate becomes 5
 	quarterback.critDmg becomes 33
 	quarterback.goldOnKill becomes 4
@@ -189,8 +194,9 @@ public func show {
 	coach.currentHealth becomes coach.maxHealth
 	coach.damage becomes 1
 	coach.speed becomes 2
+	fixSpeed(coach)
 	coach.name becomes "Coach"
-	coach.spritePath becomes "Coach.bmp"
+	coach.spriteId becomes 5
 	coach.critRate becomes 5
 	coach.critDmg becomes 10
 	coach.goldOnKill becomes 1
@@ -199,8 +205,9 @@ public func show {
 	cheerleader.currentHealth becomes cheerleader.maxHealth
 	cheerleader.damage becomes 3
 	cheerleader.speed becomes 4
+	fixSpeed(cheerleader)
 	cheerleader.name becomes "Cheerleader"
-	cheerleader.spritePath becomes "Cheerleader.bmp"
+	cheerleader.spriteId becomes 3
 	cheerleader.critRate becomes 5
 	cheerleader.critDmg becomes 50
 	cheerleader.goldOnKill becomes 3
@@ -224,8 +231,9 @@ public func show {
 	alien.currentHealth becomes alien.maxHealth
 	alien.damage becomes 7
 	alien.speed becomes 4
+	fixSpeed(alien)
 	alien.name becomes "Alien"
-	alien.spritePath becomes "Alien.bmp"
+	alien.spriteId becomes 1
 	alien.critRate becomes 5
 	alien.critDmg becomes 33
 	alien.goldOnKill becomes 3
@@ -235,7 +243,7 @@ public func show {
 	ufo.damage becomes 5
 	ufo.speed becomes 1
 	ufo.name becomes "UFO"
-	ufo.spritePath becomes "UFO.bmp"
+	ufo.spriteId becomes 16
 	ufo.critRate becomes 5
 	ufo.critDmg becomes 33
 	ufo.goldOnKill becomes 10
@@ -257,8 +265,9 @@ public func show {
 	thug.currentHealth becomes thug.maxHealth
 	thug.damage becomes 7
 	thug.speed becomes 4
+	fixSpeed(thug)
 	thug.name becomes "Inmate"
-	thug.spritePath becomes "Thug.bmp"
+	thug.spriteId becomes 15
 	thug.critRate becomes 5
 	thug.critDmg becomes 33
 	thug.goldOnKill becomes 6
@@ -268,7 +277,7 @@ public func show {
 	cop.damage becomes 3
 	cop.speed becomes 1
 	cop.name becomes "C.O"
-	cop.spritePath becomes "Cop.bmp"
+	cop.spriteId becomes 6
 	cop.critRate becomes 5
 	cop.critDmg becomes 33
 	cop.goldOnKill becomes 8
@@ -292,8 +301,9 @@ public func show {
 	hellSpawn.currentHealth becomes hellSpawn.maxHealth
 	hellSpawn.damage becomes 14
 	hellSpawn.speed becomes 6
+	fixSpeed(hellSpawn)
 	hellSpawn.name becomes "Hell spawn"
-	hellSpawn.spritePath becomes "hellspawn.bmp"
+	hellSpawn.spriteId becomes 8
 	hellSpawn.critRate becomes 5
 	hellSpawn.critDmg becomes 33
 	hellSpawn.goldOnKill becomes 50
@@ -303,7 +313,7 @@ public func show {
 	satan.damage becomes 30
 	satan.speed becomes 1
 	satan.name becomes "Satan"
-	satan.spritePath becomes "satan.bmp"
+	satan.spriteId becomes 13
 	satan.critRate becomes 3
 	satan.critDmg becomes 150
 	satan.goldOnKill becomes 200
@@ -341,6 +351,7 @@ func hide {
 
 func(BattleFinishArgs args) battleEnded {
 	
+	Battle bt becomes cast(args.battle,Battle)
 	if (currentStage,=/=,0) {
 		
 		player.addExp(args.expGained)
@@ -349,6 +360,7 @@ func(BattleFinishArgs args) battleEnded {
 		if (!args.playerWon) {
 			form.fncExecQueue.add($hide)
 			player.ar15Cd becomes 0
+			bt.refreshSpells
 			currentStage becomes null
 			retn
 		}
@@ -361,6 +373,8 @@ func(BattleFinishArgs args) battleEnded {
 					currentStage becomes null
 				}
 				form.fncExecQueue.add($hide)
+				player.ar15Cd becomes 0
+				bt.refreshSpells
 				player.currentHealth becomes player.health
 				retn
 			}

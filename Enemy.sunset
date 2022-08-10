@@ -1,4 +1,4 @@
-import(ImageReference)
+import(Windows/Drawing/FormImage)
 STRUCT
 public int maxHealth
 public int currentHealth
@@ -7,14 +7,14 @@ public int critRate ; every critRate amount of hits will be a crit
 public int critDmg ; as a % bonus damage
 public int speed
 public int abilityCooldownMs
-public str spritePath
 public str name
 public FUNCPTR abilityFnc ; 1 expected argument (Player player)
 public int goldOnKill
 public int hitRotation becomes 1
-public ImageReference img
+public FormImage img
 public int attackCd becomes 20
 public int attackCdMax
 public int animationTicks
 public bool dead becomes false
 public int bonusXp
+public int spriteId

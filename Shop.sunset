@@ -12,13 +12,13 @@
 
 import(Windows/Form)
 import(Simple-RPG\Player)
-import(Windows/RECT)
+import(Windows/Drawing/RECT)
 import(Windows/CollisionEventArgs)
 import(Simple-RPG\ShopEntry)
-import(Windows/Line)
-import(Windows/SimpleLabel)
-import(Windows/SIZE)
-import(Windows/RECTF)
+import(Windows/Drawing/Line)
+import(Windows/Drawing/SimpleLabel)
+import(Windows/Drawing/SIZE)
+import(Windows/Drawing/RECTF)
 
 dllref(User32,str,str,int) cdecl:wsprintfA int
 
@@ -129,6 +129,9 @@ private func(CollisionEventArgs args) btnPress {
 		if (hb,=,en.purchaseBtnHb) {
 			if (player.gold,>=,en.cost) {
 				if (player.intellect,<,en.intellectRequirement) { break }
+				if (!player.isMage) {
+					if (en.isSpell) { break }
+				}
 				player.gold becomes player.gold-en.cost
 				callptr(en.onPurchase)
 				wsprintfA(goldLbl.text,"Your Gold: %dg",player.gold)

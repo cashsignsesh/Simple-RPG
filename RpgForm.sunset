@@ -1,12 +1,13 @@
 import(Windows/Form)
-import(Windows/SimpleLabel)
+import(Windows/Drawing/SimpleLabel)
 import(Windows/KeyEventArgs)
-import(Windows/RECT)
+import(Windows/Drawing/RECT)
 import(Windows/FormEventArgs)
-import(Windows/Line)
+import(Windows/Drawing/Line)
 import(Windows/MouseEventArgs)
 import(Windows/CollisionEventArgs)
-import(ImageReference)
+import(Windows/Drawing/ImageUtil)
+import(Windows/Drawing/FormImage)
 import(Simple-RPG\Enemy)
 import(Simple-RPG\Player)
 import(Simple-RPG\Battle)
@@ -18,17 +19,14 @@ import(Simple-RPG\Arena)
 
 dllref(User32,str,str,int) cdecl:wsprintfA int
 
-;TODO
-; - spells
-; - cleanup repo and try to get Sunset syntax recogized on github... remember to update yt channel description links
-
-;Next project
-; - New components for Form.sunset like progress bar
-
 pullable Form form becomes new(Form,"RPG",100,100,600,400)
 private Player player becomes new(Player)
 private constant int Y becomes 310
 private constant int Y0 becomes 100
+
+HBITMAP shopBmp becomes ImageUtil.loadBitmap("Shop.bmp",200,300)
+HBITMAP arenaBmp becomes ImageUtil.loadBitmap("Arena.bmp",200,300)
+HBITMAP endlessBmp becomes ImageUtil.loadBitmap("Endless.bmp",200,300)
 
 RECT mageHb
 RECT rogueHb
@@ -45,7 +43,7 @@ indicator.text becomes ""
 form.addComponent(indicator)
 
 str blank becomes ""
-str mageDescription becomes "As a mage, you will have the opportunity to purchase spells"
+str mageDescription becomes "As a mage, you will have the opportunity to purchase spells and have increased intellect"
 str rogueDescription becomes "As a rogue, you will have increased speed and critical strike damage"
 str bardDescription becomes "As a bard, you will gain double gold in endless mode"
 str warriorDescription becomes "As a warrior, you will have increased damage and health"
@@ -233,7 +231,7 @@ entry11.isSpell becomes true
 entries[12] becomes entry11
 ShopEntry entry12 becomes new(ShopEntry)
 entry12.name becomes "Rebirth (Mage)"
-entry12.cost becomes 25
+entry12.cost becomes 150
 entry12.description becomes "Restore all health. 20+ intellect. Cost 150g"
 entry12.onPurchase becomes $purchaseRebirth
 entry12.oneTimePurchase becomes true
@@ -243,6 +241,7 @@ entries[13] becomes entry12
 Shop shop becomes new(Shop,form,player,entries)
 
 Arena arena becomes new(Arena,form,player)
+int krabsInterval becomes 80
 
 private func wipe {
 
@@ -424,22 +423,16 @@ func exitSkillTree {
 	endlessBtn becomes form.drawBtn(475,300,"Endless")
 	skillTreeBtn becomes form.drawBtn(262,350,"Skill Tree")
 	; Images for btns
-	ImageReference ref becomes new(ImageReference)
-	ref.fileName becomes "Shop.bmp"
-	ref.width becomes 200
-	ref.height becomes 300
+	FormImage ref becomes new(FormImage)
+	ref.bitmap becomes shopBmp
 	form.images.add(ref)
-	ImageReference ref0 becomes new(ImageReference)
-	ref0.fileName becomes "Arena.bmp"
+	FormImage ref0 becomes new(FormImage)
+	ref0.bitmap becomes arenaBmp
 	ref0.x becomes 200
-	ref0.width becomes 200
-	ref0.height becomes 300
 	form.images.add(ref0)
-	ImageReference ref1 becomes new(ImageReference)
-	ref1.fileName becomes "Endless.bmp"
+	FormImage ref1 becomes new(FormImage)
+	ref1.bitmap becomes endlessBmp
 	ref1.x becomes 400
-	ref1.width becomes 200
-	ref1.height becomes 300
 	form.images.add(ref1)
 	form.rePaint
 	
@@ -521,7 +514,8 @@ func openSkillTree {
 	; ---
 	
 	wsprintfA(dmgLbl.text,"Damage (%d)",player.damage)
-	wsprintfA(spdLbl.text,"Speed (%d)",player.speed)
+	if (player.speed,=,21) { spdLbl.text becomes "Speed (Max)" }
+	else { wsprintfA(spdLbl.text,"Speed (%d)",player.speed) }
 	wsprintfA(healthLbl.text,"Health (%d)",player.health)
 	wsprintfA(intLbl.text,"Intellect (%d)",player.intellect)
 	wsprintfA(critLbl.text,"Crit Damage (%d%%)",player.critDmg)
@@ -557,82 +551,93 @@ func(int difficulty) genEnemyWithDifficulty Enemy {
 	spriteRdm becomes Random.genXch(spriteRdmMax)
 	
 	Enemy enemy becomes new(Enemy)
-	switch (spriteRdm) {
-		case(0): ; (Swine)
-			enemy.maxHealth becomes difficulty/3
-			enemy.currentHealth becomes enemy.maxHealth
-			enemy.damage becomes difficulty/9
-			enemy.speed becomes difficulty/9
-			enemy.name becomes "Swine"
-			enemy.spritePath becomes "Swine.bmp"
-			enemy.critRate becomes 5
-			enemy.critDmg becomes 33
-			enemy.goldOnKill becomes 1
-			break
-		case(1): ; (Ghoul)
-			enemy.maxHealth becomes difficulty/6
-			enemy.currentHealth becomes enemy.maxHealth
-			enemy.damage becomes difficulty/12
-			enemy.speed becomes difficulty/3
-			enemy.name becomes "Ghoul"
-			enemy.spritePath becomes "Ghoul.bmp"
-			enemy.critRate becomes 3
-			enemy.critDmg becomes 100
-			enemy.bonusXp becomes difficulty/10
-			enemy.goldOnKill becomes 2
-			break
-		case(2): ; (Cop)
-			enemy.maxHealth becomes difficulty
-			enemy.currentHealth becomes enemy.maxHealth
-			enemy.damage becomes difficulty/4
-			enemy.speed becomes difficulty/30
-			enemy.name becomes "Cop"
-			enemy.spritePath becomes "Cop.bmp"
-			enemy.critRate becomes 5
-			enemy.critDmg becomes 33
-			enemy.bonusXp becomes difficulty/8
-			enemy.attackCd becomes 150
-			enemy.goldOnKill becomes 3
-			break
-		case(3): ; (Butcher Man)
-			enemy.maxHealth becomes difficulty*2
-			enemy.currentHealth becomes enemy.maxHealth
-			enemy.damage becomes difficulty
-			enemy.speed becomes difficulty/50
-			enemy.name becomes "Butcher Man"
-			enemy.spritePath becomes "ButcherMan.bmp"
-			enemy.critRate becomes 5
-			enemy.critDmg becomes 33
-			enemy.bonusXp becomes difficulty/6
-			enemy.attackCd becomes 200
-			enemy.goldOnKill becomes 4
-			break
-		case(4): ; (Sniper)
-			enemy.maxHealth becomes difficulty/3+10
-			enemy.currentHealth becomes enemy.maxHealth
-			enemy.damage becomes difficulty*4
-			enemy.speed becomes difficulty/100
-			enemy.name becomes "Sniper"
-			enemy.spritePath becomes "Sniper.bmp"
-			enemy.critRate becomes 5
-			enemy.critDmg becomes 33
-			enemy.bonusXp becomes difficulty/8
-			enemy.attackCd becomes 300
-			enemy.goldOnKill becomes 4
-			break
-		case(5): ; (Cloud)
-			enemy.maxHealth becomes 1
-			enemy.currentHealth becomes enemy.maxHealth
-			enemy.damage becomes difficulty/20
-			enemy.speed becomes difficulty/2
-			enemy.name becomes "Cloud"
-			enemy.spritePath becomes "Cloud.bmp"
-			enemy.critRate becomes 2
-			enemy.critDmg becomes 200
-			enemy.bonusXp becomes difficulty
-			enemy.attackCd becomes 10
-			enemy.goldOnKill becomes 2
-			break
+	krabsInterval becomes krabsInterval-1
+	if (krabsInterval,=,0) {
+		enemy.spriteId becomes 9
+		enemy.name becomes "Mr. Krabs"
+		enemy.goldOnKill becomes 250
+		enemy.maxHealth becomes 1
+		enemy.currentHealth becomes 1
+		krabsInterval becomes 100
+	}
+	else {
+		switch (spriteRdm) {
+			case(0): ; (Swine)
+				enemy.maxHealth becomes difficulty/3
+				enemy.currentHealth becomes enemy.maxHealth
+				enemy.damage becomes difficulty/9
+				enemy.speed becomes difficulty/9
+				enemy.name becomes "Swine"
+				enemy.spriteId becomes 17
+				enemy.critRate becomes 5
+				enemy.critDmg becomes 33
+				enemy.goldOnKill becomes 1
+				break
+			case(1): ; (Ghoul)
+				enemy.maxHealth becomes difficulty/6
+				enemy.currentHealth becomes enemy.maxHealth
+				enemy.damage becomes difficulty/12
+				enemy.speed becomes difficulty/3
+				enemy.name becomes "Ghoul"
+				enemy.spriteId becomes 7
+				enemy.critRate becomes 3
+				enemy.critDmg becomes 100
+				enemy.bonusXp becomes difficulty/10
+				enemy.goldOnKill becomes 2
+				break
+			case(2): ; (Cop)
+				enemy.maxHealth becomes difficulty
+				enemy.currentHealth becomes enemy.maxHealth
+				enemy.damage becomes difficulty/4
+				enemy.speed becomes difficulty/30
+				enemy.name becomes "Cop"
+				enemy.spriteId becomes 6
+				enemy.critRate becomes 5
+				enemy.critDmg becomes 33
+				enemy.bonusXp becomes difficulty/8
+				enemy.attackCd becomes 150
+				enemy.goldOnKill becomes 3
+				break
+			case(3): ; (Butcher Man)
+				enemy.maxHealth becomes difficulty*2
+				enemy.currentHealth becomes enemy.maxHealth
+				enemy.damage becomes difficulty
+				enemy.speed becomes difficulty/50
+				enemy.name becomes "Butcher Man"
+				enemy.spriteId becomes 2
+				enemy.critRate becomes 5
+				enemy.critDmg becomes 33
+				enemy.bonusXp becomes difficulty/6
+				enemy.attackCd becomes 200
+				enemy.goldOnKill becomes 4
+				break
+			case(4): ; (Sniper)
+				enemy.maxHealth becomes difficulty/3+10
+				enemy.currentHealth becomes enemy.maxHealth
+				enemy.damage becomes difficulty*4
+				enemy.speed becomes difficulty/100
+				enemy.name becomes "Sniper"
+				enemy.spriteId becomes 14
+				enemy.critRate becomes 5
+				enemy.critDmg becomes 33
+				enemy.bonusXp becomes difficulty/8
+				enemy.attackCd becomes 300
+				enemy.goldOnKill becomes 4
+				break
+			case(5): ; (Cloud)
+				enemy.maxHealth becomes 1
+				enemy.currentHealth becomes enemy.maxHealth
+				enemy.damage becomes difficulty/20
+				enemy.speed becomes difficulty/2
+				enemy.name becomes "Cloud"
+				enemy.spriteId becomes 4
+				enemy.critRate becomes 2
+				enemy.critDmg becomes 200
+				enemy.bonusXp becomes difficulty
+				enemy.attackCd becomes 10
+				enemy.goldOnKill becomes 2
+				break
+		}
 	}
 	if (enemy.damage,=,0) { enemy.damage becomes 1 }
 	if (player.shinguardEquipped) { enemy.speed becomes enemy.speed-10 }
@@ -673,6 +678,8 @@ func(int difficulty) generateEnemies Enemy# {
 
 func(BattleFinishArgs args) battleEnded {
 	
+	Battle bt becomes cast(args.battle,Battle)
+	
 	player.addExp(args.expGained)
 	player.gold becomes player.gold+args.goldGained
 	if (player.class,=,player.Bard) {
@@ -685,6 +692,7 @@ func(BattleFinishArgs args) battleEnded {
 			endlessStage becomes 0
 			form.fncExecQueue.add($openSkillTree)
 			player.ar15Cd becomes 0
+			bt.refreshSpells
 			retn
 		}
 		else {
@@ -708,7 +716,7 @@ func beginEndless {
 	stdEnemy.damage becomes 1
 	stdEnemy.speed becomes 1
 	stdEnemy.name becomes "Swine"
-	stdEnemy.spritePath becomes "Swine.bmp"
+	stdEnemy.spriteId becomes 17
 	stdEnemy.critRate becomes 5
 	stdEnemy.critDmg becomes 33
 	stdEnemy.goldOnKill becomes 1
@@ -752,21 +760,29 @@ func(CollisionEventArgs args) btnClick {
 					wsprintfA(dmgLbl.text,"Damage (%d)",player.damage)
 					break
 				case (spdBtn):
+					if (player.speed,=,21) { retn }
 					if (player.class,=,player.Rogue) { player.speed becomes player.speed+2 }
 					else { player.speed becomes player.speed+1 }
-					wsprintfA(spdLbl.text,"Speed (%d)",player.speed)
+					if (player.speed,=,21) { spdLbl.text becomes "Speed (Max)" }
+					else { wsprintfA(spdLbl.text,"Speed (%d)",player.speed) }
 					break
 				case (healthBtn):
 					int up
-					if (player.class,=,player.Warrior) { up becomes 5 }
-					else { up becomes 3 }
-					if (player.breastplateEquipped) { up becomes (up/3)*4 }
+					if (player.class,=,player.Warrior) { 
+						if (player.breastplateEquipped) { up becomes 7  }
+						else { up becomes 5 }
+					}
+					else { 
+						if (player.breastplateEquipped) { up becomes 4 }
+						else { up becomes 3 }
+					}
 					player.health becomes player.health+up
 					wsprintfA(healthLbl.text,"Health (%d)",player.health)
 					player.currentHealth becomes player.health
 					break
 				case (intBtn):
-					player.intellect becomes player.intellect+1
+					if (player.class,=,player.Mage) { player.intellect becomes player.intellect+2 }
+					else { player.intellect becomes player.intellect+1 }
 					wsprintfA(intLbl.text,"Intellect (%d)",player.intellect)
 					break
 				case (critBtn):

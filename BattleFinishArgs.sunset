@@ -2,3 +2,4 @@ STRUCT
 public bool playerWon
 public int expGained
 public int goldGained
+public PTR battle ; ( if i set this to Battle it would cause a stack overflow, probably will fix in future, its on the todo list

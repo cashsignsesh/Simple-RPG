@@ -1,20 +1,24 @@
+acknowledge HBITMAP as PTR
 import(Simple-RPG\Enemy)
 import(Simple-RPG\Player)
-import(ImageReference)
+import(Windows/Drawing/FormImage)
+import(Windows/Drawing/ImageUtil)
 import(Windows/Form)
-import(Windows/Line)
-import(Windows/SimpleLabel)
-import(Windows/RECT)
+import(Windows/Drawing/Line)
+import(Windows/Drawing/SimpleLabel)
+import(Windows/Drawing/RECT)
 import(Tuple<RECT,Enemy>)
 import(List<Tuple<RECT,Enemy>>)
 import(Windows/CollisionEventArgs)
 import(Tuple<SimpleLabel,Enemy>)
 import(List<Tuple<SimpleLabel,Enemy>>)
-import(Windows/RECTF)
+import(Windows/Drawing/RECTF)
 import(Windows/TimerEventArgs)
 import(Event<int>)
 import(Simple-RPG\BattleFinishArgs)
+import(Windows/MessageBox)
 dllref(User32,str,str,int,int) cdecl:wsprintfA int
+dllref(Kernel32,int,int,Enemy#) HeapFree bool
 public Enemy# enemies ; allow up to 3 ? or ignore rest after 3
 public Player player
 private Form form
@@ -35,32 +39,100 @@ private RECT applesHb becomes new(RECT)
 private int goldGained
 private RECT ar15Hb becomes new(RECT)
 private SimpleLabel arLbl becomes new(SimpleLabel)
+private FormImage playerImg becomes new(FormImage)
+
+private HBITMAP alienBmp becomes ImageUtil.loadBitmap("Alien.bmp",92,64)
+private HBITMAP butchermanBmp becomes ImageUtil.loadBitmap("ButcherMan.bmp",92,64)
+private HBITMAP cheerleaderBmp becomes ImageUtil.loadBitmap("Cheerleader.bmp",92,64)
+private HBITMAP cloudBmp becomes ImageUtil.loadBitmap("Cloud.bmp",92,64)
+private HBITMAP coachBmp becomes ImageUtil.loadBitmap("Coach.bmp",92,64)
+private HBITMAP copBmp becomes ImageUtil.loadBitmap("Cop.bmp",92,64)
+private HBITMAP ghoulBmp becomes ImageUtil.loadBitmap("Ghoul.bmp",92,64)
+private HBITMAP hellspawnBmp becomes ImageUtil.loadBitmap("Hellspawn.bmp",92,64)
+private HBITMAP nerdBmp becomes ImageUtil.loadBitmap("Nerd.bmp",92,64)
+private HBITMAP nerdbossBmp becomes ImageUtil.loadBitmap("NerdBoss.bmp",92,64)
+private HBITMAP quarterbackBmp becomes ImageUtil.loadBitmap("Quarterback.bmp",92,64)
+private HBITMAP satanBmp becomes ImageUtil.loadBitmap("Satan.bmp",92,64)
+private HBITMAP sniperBmp becomes ImageUtil.loadBitmap("Sniper.bmp",92,64)
+private HBITMAP swineBmp becomes ImageUtil.loadBitmap("Swine.bmp",92,64)
+private HBITMAP thugBmp becomes ImageUtil.loadBitmap("Thug.bmp",92,64)
+private HBITMAP ufoBmp becomes ImageUtil.loadBitmap("UFO.bmp",92,64)
+private HBITMAP mrkrabsBmp becomes ImageUtil.loadBitmap("MrKrabs.bmp",92,64)
+private HBITMAP# bmps becomes #,(null,alienBmp,butchermanBmp,cheerleaderBmp,cloudBmp,coachBmp,copBmp,ghoulBmp,hellspawnBmp,mrkrabsBmp,nerdBmp,nerdbossBmp,quarterbackBmp,satanBmp,sniperBmp,thugBmp,ufoBmp,swineBmp)
+
+private FormImage appleImg becomes new(FormImage)
+private FormImage arImg becomes new(FormImage)
+private FormImage blessingImg becomes new(FormImage)
+private FormImage blindnessImg becomes new(FormImage)
+private FormImage crucifyImg becomes new(FormImage)
+private FormImage rebirthImg becomes new(FormImage)
+
+private SimpleLabel blessingLbl becomes new(SimpleLabel)
+private SimpleLabel blindnessLbl becomes new(SimpleLabel)
+private SimpleLabel crucifyLbl becomes new(SimpleLabel)
+private SimpleLabel rebirthLbl becomes new(SimpleLabel)
+private RECT blessingHb becomes new(RECT)
+private RECT blindnessHb becomes new(RECT)
+private RECT crucifyHb becomes new(RECT)
+private RECT rebirthHb becomes new(RECT)
+private RECTF blessingWhitebox
+private RECTF blindnessWhitebox
+private RECTF crucifyWhitebox
+
+public func refreshSpells {
+	
+	player.refreshSpellUses
+	int i becomes form.fillRectangles.indexOf(blessingWhitebox)
+	if (i,=/=,-1) { form.fillRectangles.remove(blessingWhitebox) }
+	i becomes form.fillRectangles.indexOf(blindnessWhitebox)
+	if (i,=/=,-1) { form.fillRectangles.remove(blindnessWhitebox) }
+	i becomes form.fillRectangles.indexOf(crucifyWhitebox)
+	if (i,=/=,-1) { form.fillRectangles.remove(crucifyWhitebox) }
+	
+}
 
 private func fillWhiteboxes {
 
 	foreach (tpl,enemyBtns.toArray) {
 			
 		RECTF whiteBox becomes new(RECTF)
-		whiteBox.left becomes tpl.item1.left
-		whiteBox.right becomes tpl.item1.right+1
-		whiteBox.bottom becomes tpl.item1.bottom+1
-		whiteBox.top becomes tpl.item1.top
+		whiteBox.left becomes tpl.item.left
+		whiteBox.right becomes tpl.item.right+1
+		whiteBox.bottom becomes tpl.item.bottom+1
+		whiteBox.top becomes tpl.item.top
 		form.fillRectangles.add(whiteBox)
 		
 	}
 }
 
+private func rmAttackWhiteboxes {
+	bool flag becomes false
+	bool flag0 becomes false
+	bool flag1 becomes false
+	if (form.fillRectangles.contains(blessingWhitebox)) { flag becomes true }
+	if (form.fillRectangles.contains(blindnessWhitebox)) { flag0 becomes true }
+	if (form.fillRectangles.contains(crucifyWhitebox)) { flag1 becomes true }
+	form.fillRectangles.clear
+	if (flag) { form.fillRectangles.add(blessingWhitebox) }
+	if (flag0) { form.fillRectangles.add(blindnessWhitebox) }
+	if (flag1) { form.fillRectangles.add(crucifyWhitebox) }
+}
+
+private func(RECT from) copyNOffset RECTF {
+	RECTF to becomes new(RECTF)
+	to.left becomes from.left
+	to.top becomes from.top
+	to.bottom becomes from.bottom+1
+	to.right becomes from.right+1
+	retn(to)
+}
+
 public func show {
 	
-	ImageReference ref becomes new(ImageReference)
-	ref.y becomes 200
-	ref.height becomes 64
-	ref.width becomes 92
-	ref.fileName becomes player.sprite
-	form.images.add(ref)
+	form.images.add(playerImg)
 	Line border becomes new(Line)
 	border.x0 becomes form.w
-	border.y becomes ref.y+ref.height
+	border.y becomes 272 ; ref.y+ref.height
 	border.y0 becomes border.y
 	form.lines.add(border)
 	SimpleLabel nameLbl becomes new(SimpleLabel)
@@ -74,9 +146,9 @@ public func show {
 	int curX becomes 500
 	foreach (e,enemies) {
 		
-		ImageReference ref0 becomes new(ImageReference)
+		FormImage ref0 becomes new(FormImage)
 		e.img becomes ref0
-		ref0.fileName becomes e.spritePath
+		ref0.bitmap becomes bmps[e.spriteId]
 		ref0.x becomes curX
 		form.images.add(ref0)
 		RECT btnHb becomes new(RECT)
@@ -88,11 +160,11 @@ public func show {
 		healthLbl.y becomes 100
 		wsprintfA(healthLbl.text,"%d/%d",e.currentHealth,e.maxHealth)
 		Tuple<RECT,Enemy> tpl becomes new(Tuple<RECT,Enemy>)
-		tpl.item1 becomes btnHb
-		tpl.item2 becomes e
+		tpl.item becomes btnHb
+		tpl.item0 becomes e
 		Tuple<SimpleLabel,Enemy> tpl0 becomes new(Tuple<SimpleLabel,Enemy>) 
-		tpl0.item1 becomes healthLbl
-		tpl0.item2 becomes e
+		tpl0.item becomes healthLbl
+		tpl0.item0 becomes e
 		enemyBtns.add(tpl)
 		enemyLbls.add(tpl0)
 		form.addComponent(healthLbl)
@@ -140,29 +212,73 @@ public func show {
 		onCd becomes true
 		attackCdLoadingBar.right becomes attackCdLoadingBar.left+10*attackCdTenPercentEquivalent/player.attackCd
 	}
-	ImageReference applesRef becomes new(ImageReference)
-	applesRef.x becomes 150
-	applesRef.y becomes border.y+5
-	applesRef.fileName becomes "apple.bmp"
-	form.images.add(applesRef)
+	appleImg.y becomes border.y+5
+	form.images.add(appleImg)
 	applesLbl.text becomes "Apples (x.....)"
 	wsprintfA(applesLbl.text,"Apples (x%d)",player.apples,null)
-	applesLbl.x becomes applesRef.x+34
-	applesLbl.y becomes applesRef.y
+	applesLbl.x becomes appleImg.x+34
+	applesLbl.y becomes appleImg.y
 	form.addComponent(applesLbl)
 	applesHb becomes form.drawBtn(applesLbl.x,applesLbl.y+16,"Consume")
 	if (player.ar15Equipped) {
-		ImageReference arRef becomes new(ImageReference)
-		arRef.x becomes 118
-		arRef.y becomes applesRef.y+48
-		arRef.fileName becomes "ar.bmp"
-		form.images.add(arRef)
+		arImg.y becomes appleImg.y+48
+		form.images.add(arImg)
 		arLbl.text becomes "AR-15 (Ready)"
 		if (player.ar15Cd,=/=,0) { wsprintfA(arLbl.text,"AR-15 (%ds)",player.ar15Cd/40,null) }
-		arLbl.x becomes arRef.x+66
-		arLbl.y becomes arRef.y
+		arLbl.x becomes arImg.x+66
+		arLbl.y becomes arImg.y
 		form.addComponent(arLbl)
 		ar15Hb becomes form.drawBtn(arLbl.x,arLbl.y+16,"Shoot")
+	}
+	if (player.hasBlessing) {
+		blessingLbl.text becomes "Blessing (#/2)"
+		wsprintfA(blessingLbl.text,"Blessing (%d/2)",player.blessingUses,null)
+		blessingImg.x becomes applesLbl.x+105
+		blessingImg.y becomes appleImg.y
+		form.images.add(blessingImg)
+		blessingLbl.y becomes blessingImg.y
+		blessingLbl.x becomes blessingImg.x+36
+		form.addComponent(blessingLbl)
+		blessingHb becomes form.drawBtn(blessingLbl.x,blessingLbl.y+16,"Cast")
+		blessingWhitebox becomes copyNOffset(blessingHb)
+		if (player.ticksUntilBlessingEnd,=/=,0) { form.fillRectangles.add(blessingWhitebox) }
+	}
+	if (player.hasBlindness) {
+		blindnessLbl.text becomes "Blindness (#/2)"
+		wsprintfA(blindnessLbl.text,"Blindness (%d/2)",player.blindnessUses,null)
+		blindnessImg.x becomes applesLbl.x+105
+		blindnessImg.y becomes appleImg.y+48
+		form.images.add(blindnessImg)
+		blindnessLbl.x becomes blindnessImg.x+36
+		blindnessLbl.y becomes blindnessImg.y
+		form.addComponent(blindnessLbl)
+		blindnessHb becomes form.drawBtn(blindnessLbl.x,blindnessLbl.y+16,"Cast")
+		blindnessWhitebox becomes copyNOffset(blindnessHb)
+		if (player.ticksUntilBlindnessEnd,=/=,0) { form.fillRectangles.add(blindnessWhitebox) }
+	}
+	if (player.hasCrucify) {
+		crucifyLbl.text becomes "Crucify (#/3)"
+		wsprintfA(crucifyLbl.text,"Crucify (%d/3)",player.crucifyUses,null)
+		crucifyImg.x becomes applesLbl.x+255
+		crucifyImg.y becomes appleImg.y
+		form.images.add(crucifyImg)
+		crucifyLbl.x becomes crucifyImg.x+36
+		crucifyLbl.y becomes crucifyImg.y
+		form.addComponent(crucifyLbl)
+		crucifyHb becomes form.drawBtn(crucifyLbl.x,crucifyLbl.y+16,"Cast")
+		crucifyWhitebox becomes copyNOffset(crucifyHb)
+		if (player.nextHitIsCrucify) { form.fillRectangles.add(crucifyWhitebox) }
+	}
+	if (player.hasRebirth) {
+		rebirthLbl.text becomes "Rebirth (#/1)"
+		wsprintfA(rebirthLbl.text,"Rebirth (%d/1)",player.rebirthUses,null)
+		rebirthImg.x becomes applesLbl.x+255
+		rebirthImg.y becomes appleImg.y+48
+		form.images.add(rebirthImg)
+		rebirthLbl.x becomes rebirthImg.x+36
+		rebirthLbl.y becomes rebirthImg.y
+		form.addComponent(rebirthLbl)
+		rebirthHb becomes form.drawBtn(rebirthLbl.x,rebirthLbl.y+16,"Cast")
 	}
 	form.rePaint
 }
@@ -171,14 +287,18 @@ private func removeLastBox {
 	form.hitboxes.remove(lastIndex)
 }
 private func finishBattle {
+	HeapFree(getProcessHeap,null,enemies) ; < ----------------------------- TODO UNDONE FIXME :: this is temporary and might break the game in the future
 	BattleFinishArgs args becomes new(BattleFinishArgs)
 	args.expGained becomes expGained
 	args.playerWon becomes playerWon
 	args.goldGained becomes goldGained
+	args.battle becomes this
 	onBattleEnd.raise(args)
 }
 
 private func(Enemy e) attackPlayer {
+	
+	if (player.ticksUntilBlindnessEnd,=/=,0) { retn }
 	
 	; Show basic animation to indicate that enemy is attacking ...
 	; Undone
@@ -207,6 +327,13 @@ private func(Enemy e) attackPlayer {
 	
 }
 
+private func rmBlsWb { form.fillRectangles.remove(form.fillRectangles.indexOf(blessingWhitebox)) }
+private func rmBlnWb { form.fillRectangles.remove(form.fillRectangles.indexOf(blindnessWhitebox)) }
+private func rmCrcWb {
+	int i becomes form.fillRectangles.indexOf(crucifyWhitebox)
+	if (i,=/=,-1) { form.fillRectangles.remove(i) }
+}
+
 private func(TimerEventArgs args) onTick {
 	
 	; Enemies fighting back...
@@ -231,12 +358,29 @@ private func(TimerEventArgs args) onTick {
 			}
 		}
 	}
+	if (player.ticksUntilBlessingEnd,=/=,0) {
+		player.ticksUntilBlessingEnd becomes player.ticksUntilBlessingEnd-1
+		if (player.ticksUntilBlessingEnd,=,0) {
+			form.fncExecQueue.add($rmBlsWb)
+			player.damage becomes player.damage-player.blsDmgInc
+			player.speed becomes player.speed-player.blsSpdInc
+			player.critDmg becomes player.critDmg-player.blsCrtInc
+			form.rePaint
+		}
+	}
+	if (player.ticksUntilBlindnessEnd,=/=,0) {
+		player.ticksUntilBlindnessEnd becomes player.ticksUntilBlindnessEnd-1
+		if (player.ticksUntilBlindnessEnd,=,0) {
+			form.fncExecQueue.add($rmBlnWb)
+			form.rePaint
+		}
+	}
 	
 	; Player fighting...
 	if (player.attackCd,=,0) { retn }
 	if (player.attackCd,=,1) { 
 		onCd becomes false
-		form.fillRectangles.clear
+		rmAttackWhiteboxes
 		form.rePaint
 	}
 	player.attackCd becomes player.attackCd-1
@@ -250,10 +394,10 @@ private func(Enemy enemy,int dmg,RECT enemyRect) dmgEnemy {
 	enemy.currentHealth becomes enemy.currentHealth-dmg
 	foreach (tpl,enemyLbls.toArray) {
 		
-		if (tpl.item2,=,enemy) {
+		if (tpl.item0,=,enemy) {
 			if (enemy.currentHealth,<=,0) {
 				; Remove image, set health bar to 'RIP' and disable attack btn
-				tpl.item1.text becomes "RIP"
+				tpl.item.text becomes "RIP"
 				int index becomes form.images.indexOf(enemy.img)
 				form.images.remove(index)
 				lastIndex becomes form.hitboxes.indexOf(enemyRect)
@@ -261,7 +405,7 @@ private func(Enemy enemy,int dmg,RECT enemyRect) dmgEnemy {
 				expGained becomes expGained+((enemy.maxHealth/5)+enemy.damage+enemy.speed)+enemy.bonusXp
 				goldGained becomes goldGained+enemy.goldOnKill
 				++enemiesKilled
-				tpl.item2.dead becomes true
+				tpl.item0.dead becomes true
 				player.enemiesKilled becomes player.enemiesKilled+1
 				if (player.hasTrophyCase) {
 					if (player.enemiesKilled%10,=,0) {
@@ -278,7 +422,7 @@ private func(Enemy enemy,int dmg,RECT enemyRect) dmgEnemy {
 				}
 			}
 			else {
-				wsprintfA(tpl.item1.text,"%d/%d",enemy.currentHealth,enemy.maxHealth)
+				wsprintfA(tpl.item.text,"%d/%d",enemy.currentHealth,enemy.maxHealth)
 			}
 			break
 		}
@@ -288,13 +432,17 @@ private func(Enemy enemy,int dmg,RECT enemyRect) dmgEnemy {
 
 private func(Enemy enemy,RECT enemyRect) attackEnemy {
 	
-	;TODO attack cooldown (based on player.speed)
 	int dmg becomes player.damage
 	if (player.hitRotation,=,player.critRate) {
 		dmg becomes (dmg*(100+player.critDmg))/100
 		player.hitRotation becomes 1
 	}
 	else { player.hitRotation becomes player.hitRotation+1 }
+	if (player.nextHitIsCrucify) { 
+		dmg becomes dmg*3
+		player.nextHitIsCrucify becomes false
+		form.fncExecQueue.add($rmCrcWb)
+	}
 	dmgEnemy(enemy,dmg,enemyRect)
 	onCd becomes true
 	fillWhiteboxes
@@ -317,7 +465,9 @@ private func(CollisionEventArgs args) onClick {
 	if (args.hitbox,=,ar15Hb) {
 		if (player.ar15Cd,=,0) {
 			foreach (tpl,enemyBtns.toArray) {
-				dmgEnemy(tpl.item2,20,tpl.item1)
+				if (!tpl.item0.dead) {
+					dmgEnemy(tpl.item0,20,tpl.item)
+				}
 			}
 			player.ar15Cd becomes 400
 			wsprintfA(arLbl.text,"AR-15 (%ds)",player.ar15Cd/40,null)
@@ -325,12 +475,57 @@ private func(CollisionEventArgs args) onClick {
 		}
 		retn
 	}
+	if (args.hitbox,=,blessingHb) {
+		if (player.blessingUses,=,0) { retn }
+		if (player.ticksUntilBlessingEnd,=/=,0) { retn }
+		player.blessingUses becomes player.blessingUses-1
+		player.ticksUntilBlessingEnd becomes 400
+		player.blsDmgInc becomes player.damage/2
+		player.blsSpdInc becomes player.speed/2
+		player.blsCrtInc becomes player.critDmg/2
+		form.fillRectangles.add(blessingWhitebox)
+		player.damage becomes player.damage+player.blsDmgInc
+		player.speed becomes player.speed+player.blsSpdInc
+		player.critDmg becomes player.critDmg+player.blsCrtInc
+		wsprintfA(blessingLbl.text,"Blessing (%d/2)",player.blessingUses,null)
+		form.rePaint
+		retn
+	}
+	if (args.hitbox,=,blindnessHb) {
+		if (player.blindnessUses,=,0) { retn }
+		if (player.ticksUntilBlindnessEnd,=/=,0) { retn }
+		player.blindnessUses becomes player.blindnessUses-1
+		player.ticksUntilBlindnessEnd becomes 320
+		form.fillRectangles.add(blindnessWhitebox)
+		wsprintfA(blindnessLbl.text,"Blindness (%d/2)",player.blindnessUses,null)
+		form.rePaint
+		retn
+	}
+	if (args.hitbox,=,crucifyHb) {
+		if (player.crucifyUses,=,0) { retn }
+		if (player.nextHitIsCrucify) { retn }
+		player.crucifyUses becomes player.crucifyUses-1
+		player.nextHitIsCrucify becomes true
+		form.fillRectangles.add(crucifyWhitebox)
+		wsprintfA(crucifyLbl.text,"Crucify (%d/3)",player.crucifyUses,null)
+		form.rePaint
+		retn
+	}
+	if (args.hitbox,=,rebirthHb) {
+		if (player.rebirthUses,=,0) { retn }
+		player.rebirthUses becomes player.rebirthUses-1
+		player.currentHealth becomes player.health
+		wsprintfA(rebirthLbl.text,"Rebirth (%d/1)",player.rebirthUses,null)
+		wsprintfA(healthLbl.text,"HP: %d/%d",player.currentHealth,player.health)
+		form.rePaint
+		retn
+	}
 	if (onCd) { retn }
 	
 	foreach (tpl,enemyBtns.toArray) {
 		
-		if (tpl.item1,=,args.hitbox) {
-			attackEnemy(tpl.item2,tpl.item1)
+		if (tpl.item,=,args.hitbox) {
+			attackEnemy(tpl.item0,tpl.item)
 			break
 		}
 		
@@ -346,4 +541,14 @@ constructor (Enemy# enems,Player ply,Form rForm) {
 	attackCdTenPercentEquivalent becomes attackCdMax/10
 	form.onHitboxLmbDown.addFunction($onClick)
 	form.onTimerTick.addFunction($onTick)
+	playerImg.bitmap becomes ImageUtil.loadBitmap(player.sprite,92,64)
+	playerImg.y becomes 200
+	appleImg.bitmap becomes ImageUtil.loadBitmap("Apple.bmp",32,32)
+	arImg.bitmap becomes ImageUtil.loadBitmap("AR.bmp",64,24)
+	arImg.x becomes 118
+	appleImg.x becomes 150
+	blessingImg.bitmap becomes ImageUtil.loadBitmap("Blessing.bmp",32,32)
+	blindnessImg.bitmap becomes ImageUtil.loadBitmap("Blindness.bmp",32,32)
+	crucifyImg.bitmap becomes ImageUtil.loadBitmap("Crucify.bmp",32,32)
+	rebirthImg.bitmap becomes ImageUtil.loadBitmap("Rebirth.bmp",32,32)
 }
