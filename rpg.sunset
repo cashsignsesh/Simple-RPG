@@ -1,3 +1,4 @@
+TOGGLE_GUI
 setpheapvar
 import(Simple-RPG\RpgForm)
 RpgForm rform becomes new(RpgForm)
